@@ -3,6 +3,7 @@ import Router from 'vue-router';
 import Index from '@/examples/index';
 import PCIndex from '@/examples/index-pc';
 import demoIndex from '@/examples/demo';
+import testIndex from '@/examples/test';
 /*const Index = () => import('../examples/index.vue');
 const PCIndex = () => import('../examples/index-pc.vue');*/
 
@@ -42,6 +43,11 @@ const router= new Router({
       path: '/demo',
       name: 'demo',
       component: demoIndex
+    },
+    {
+      path: '/test',
+      name: 'test',
+      component: testIndex
     }
   ]
 });

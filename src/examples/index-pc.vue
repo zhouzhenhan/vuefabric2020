@@ -1,21 +1,35 @@
 <template>
-  <div class="container">
+  <div class="container"  id="parentBox" >
 
-    <vue-fabric ref="canvas" :width="width" :height="height" id="can"></vue-fabric>
+    <div  :style="'width:'+width+'px;height:'+height+'px;'" >
+      <vue-fabric ref="canvas" :width="width" :height="height" id="can"
+                  :value="value" :contentLayout="contentLayout" :visible="visible"
+                  :step-length="stepLength"  :xLeft="xLeft" :yTop="yTop" :parent="parent"
+                  @setLine="setLine"></vue-fabric>
+    </div>
+
 
 
   </div>
 </template>
 
 <script>
-
+  import { on, off } from './event'
 export default {
   components: { },
   data () {
     return {
+      visible:true,
+      parent:true,
+      stepLength:50,
+      xLeft:0,
+      yTop:0,
+      value:[{ type: 'v', site: 100 },{ type: 'v', site: 600 },{ type: 'h', site: 100 }],
+      contentLayout:{top: 0, left: 0, }, //top: 0, left: 0
+
       data: '123',
-      width: 2000,
-      height:1000,
+      width: 5020,  //加20算上滚动条的宽度
+      height:3020,//加20算上滚动条的宽度
     };
   },
   created () {
@@ -33,18 +47,33 @@ export default {
     fabric.Object.prototype.originX = fabric.Object.prototype.originY = 'center';
 
 
-    //平行四边形
-    let rectdata2 = this.$refs.canvas.createRect({id:2,padding:10,});
-    let rectdata3 = this.$refs.canvas.createRect({id:3,left:60,fillColor:'blue', visible:true,selectable:false});
-    let rectdata4 = this.$refs.canvas.createRect({id:4,top:60,fillColor:'red',});
-
     //圆角矩形
     let rectdata = this.$refs.canvas.createRect({
       id: 1,
       width: 500,
       height: 200,
-      left: 70,
-      top: 70,
+      left: 100,
+      top: 100,
+      padding: 0,
+      angle: 0,
+      fillColor:'#eee',
+      bordersColor: '#f00',
+      bordersWidth: 1,
+      bordersStyle: [0,0],
+      scaleX:1,
+      scaleY:1,
+      rx: 5,
+      ry: 5,
+      skewX: 0,
+      skewY: 0,
+    });
+
+    let rectdata2 = this.$refs.canvas.createRect({
+      id: 1,
+      width: 500,
+      height: 200,
+      left: 800,
+      top: 900,
       padding: 0,
       angle: 0,
       fillColor:'#eee',
@@ -59,13 +88,25 @@ export default {
       skewY: 0,
     });
 
+
   },
   methods: {
-
+    //设置辅助线
+    setLine(data){
+      this.value = data;
+    }
   }
 };
 </script>
 
 <style lang='scss' scoped>
+.container{
+  margin-top:100px;
+  margin-left:50px;
+  border:1px solid #666;
+  width: 1000px;
+  height:600px;
+  overflow: scroll;
+}
 
 </style>

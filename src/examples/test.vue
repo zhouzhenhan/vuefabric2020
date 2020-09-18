@@ -1,20 +1,23 @@
 <template>
-    <div class="grey" style="position:relative; width: 600px; height: 600px; margin:100px auto;  overflow: scroll;"  id ="content" >
-        <div class="green" id="xZhou" style="position: fixed; margin-left:18px; z-index: 2; width: 572px; overflow-x: scroll; height: 18px;">
-            <div class="x-line" :style="'width: '+width+'px;'">
-                <span v-for="(item,index) in xScale" :key="index" :style="{left:index * 50 + 2 + 'px'}" class="number">{{ item.id }}</span>
+    <div class="bigbox">
+        <div class="grey" style="position:relative; width: 600px; height: 600px; margin:100px auto;  overflow: scroll;"  id ="content" >
+            <div class="green" id="xZhou" style="position: fixed; margin-left:18px; z-index: 2; width: 572px; overflow-x: scroll; height: 18px;">
+                <div class="x-line" :style="'width: '+width+'px;'">
+                    <span v-for="(item,index) in xScale" :key="index" :style="{left:index * 50 + 2 + 'px'}" class="number">{{ item.id }}</span>
+                </div>
             </div>
-        </div>
-        <div class="green" id="yZhou" style="position: fixed; margin-top:18px; z-index: 2; width: 18px; overflow-y: scroll; height: 572px;">
-            <div class="y-line" :style="'height:'+height+'px; '">
-                <span v-for="(item,index) in yScale" :key="index" :style="{top:index * 50 + 2 + 'px'}" class="number">{{ item.id }}</span>
+            <div class="green" id="yZhou" style="position: fixed; margin-top:18px; z-index: 2; width: 18px; overflow-y: scroll; height: 572px;">
+                <div class="y-line" :style="'height:'+height+'px; '">
+                    <span v-for="(item,index) in yScale" :key="index" :style="{top:index * 50 + 2 + 'px'}" class="number">{{ item.id }}</span>
+                </div>
             </div>
-        </div>
 
-        <div  class="black"style="position: absolute; top:18px; left: 18px;">
-            <div  class="yellow" :style="'width: '+width+'px;height:'+height+'px; '">abcdefgh</div>
+            <div  class="black"style="position: absolute; top:18px; left: 18px;">
+                <div  class="yellow" :style="'width: '+width+'px;height:'+height+'px; '">abcdefgh</div>
+            </div>
         </div>
     </div>
+
 </template>
 
 <script>
@@ -142,6 +145,11 @@
     .black{
         background: black;
     }
-
+.bigbox{
+    margin:0;
+    width: 100%;
+    height: 100vh;
+    background: #eee;
+}
 
 </style>

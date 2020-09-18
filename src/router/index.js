@@ -5,7 +5,7 @@ import demo001 from '@/examples/ruler-test001';
 import testv001 from '@/examples/testv001';
 import testv002 from '@/examples/testv002';
 import demo003 from '@/examples/ruler-test003';
-import testIndex from '@/examples/test';
+import testIndex from '@/examples/test2';
 import demoIndex from '@/examples/demo'
 
 

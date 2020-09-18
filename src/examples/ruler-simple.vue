@@ -1,11 +1,11 @@
 <template>
-    <div class="grey" style="position:relative; width: 600px; height: 600px; margin:100px auto;  overflow: scroll;"  id ="content" >
-        <div class="green" id="xZhou" style="position: fixed; margin-left:18px; z-index: 2; width: 572px; overflow-x: scroll; height: 18px;">
+    <div id ="content" >
+        <div id="xZhou">
             <div class="x-line" :style="'width: '+width+'px;'">
                 <span v-for="(item,index) in xScale" :key="index" :style="{left:index * 50 + 2 + 'px'}" class="number">{{ item.id }}</span>
             </div>
         </div>
-        <div class="green" id="yZhou" style="position: fixed; margin-top:18px; z-index: 2; width: 18px; overflow-y: scroll; height: 572px;">
+        <div id="yZhou">
             <div class="y-line" :style="'height:'+height+'px; '">
                 <span v-for="(item,index) in yScale" :key="index" :style="{top:index * 50 + 2 + 'px'}" class="number">{{ item.id }}</span>
             </div>
@@ -20,7 +20,7 @@
 <script>
     import { on, off } from './event'
     export default {
-        name: "test",
+        name: "ruler-simple",
         data(){
             return{
                 xScale:[],
@@ -87,12 +87,32 @@
 </script>
 
 <style scoped lang="scss">
-.grey{
-    background: #eee;
-    div{
-        height: 20px;
+    #content{
+        position:relative;
+        width: 600px;
+        height: 600px;
+        margin:100px auto;
+        overflow: scroll;
     }
-}
+    #xZhou{
+        position: fixed;
+        margin-left:18px;
+        z-index: 2;
+        width: 572px;
+        overflow-x: scroll;
+        height: 18px;
+    }
+    #yZhou{
+        position: fixed;
+        margin-top:18px;
+        z-index: 2;
+        width: 18px;
+        overflow-y: scroll;
+        height: 572px;
+    }
+    #xZhou::-webkit-scrollbar, #yZhou::-webkit-scrollbar{
+        display:none;
+    }
     .x-line{
         width: 100%;
         height: 18px;
@@ -121,27 +141,4 @@
         left: 3px;
         word-wrap: break-word;
     }
-
-
-    .green{
-        /*background: green;*/
-    }
-    .green::-webkit-scrollbar {
-        display:none;
-
-    }
-    .blue{
-        background: blue;
-    }
-.yellow{
-    background: yellow;
-}
-    .orange{
-        background: orange;
-    }
-    .black{
-        background: black;
-    }
-
-
 </style>

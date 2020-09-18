@@ -3,7 +3,6 @@
     <div class="title">{{name}}:{{width}}*{{height}}</div>
     <canvas id="canvas" :width="width" :height="height"></canvas>
 
-
   </div>
 </template>
 
@@ -14,6 +13,8 @@ import initAligningGuidelines  from '../../utils/guidelines';
 
 export default {
   name: 'VueFabric',
+  components:{
+  },
   props: {
     width: {
       type: Number,
@@ -59,22 +60,6 @@ export default {
       br: {
         action: 'scale',
       },
-     /* mb: {
-          action: function(e, target) {
-              console.log('e----------------',e,target);
-
-              if(target.isType!=='font'){
-                target.set({
-                  width:target.width * target.scaleX,
-                  height:target.height * target.scaleY,
-                  scaleX:1,
-                  scaleY:1,
-                });
-                canvas.renderAll();
-              }
-
-          },
-      },*/
       mb: {
         action: 'scaleY',
       },

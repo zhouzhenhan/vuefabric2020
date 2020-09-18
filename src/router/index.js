@@ -2,6 +2,7 @@ import Vue from 'vue';
 import Router from 'vue-router';
 import index from '@/examples/index';
 import demo001 from '@/examples/ruler-test001';
+import testv001 from '@/examples/testv001';
 import testv002 from '@/examples/testv002';
 import demo003 from '@/examples/ruler-test003';
 import testIndex from '@/examples/test';
@@ -42,6 +43,10 @@ const router= new Router({
       path: '/demo001',
       name: 'demo001',
       component: demo001      //直接调用引入的标尺组件
+    },{
+      path: '/testv001',
+      name: 'testv001',
+      component: testv001     //有画布 有组件间辅助线 的组件 v0.0.1 对应fabric_bak
     },
     {
       path: '/testv002',

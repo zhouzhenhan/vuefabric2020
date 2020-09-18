@@ -1,9 +1,6 @@
 <template>
   <div>
     <div class="title">{{name}}:{{width}}*{{height}}</div>
-    <div id="drawRule">
-
-    </div>
     <canvas id="canvas" :width="width" :height="height"></canvas>
 
 

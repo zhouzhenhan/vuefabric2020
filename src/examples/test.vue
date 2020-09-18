@@ -1,18 +1,18 @@
 <template>
     <div class="grey" style="position:relative; width: 600px; height: 600px; margin:100px auto;  overflow: scroll;"  id ="content" >
         <div class="green" id="xZhou" style="position: fixed; margin-left:18px; z-index: 2; width: 572px; overflow-x: scroll; height: 18px;">
-            <div class="x-line" style="width: 1000px; ">
+            <div class="x-line" :style="'width: '+width+'px;'">
                 <span v-for="(item,index) in xScale" :key="index" :style="{left:index * 50 + 2 + 'px'}" class="number">{{ item.id }}</span>
             </div>
         </div>
         <div class="green" id="yZhou" style="position: fixed; margin-top:18px; z-index: 2; width: 18px; overflow-y: scroll; height: 572px;">
-            <div class="y-line" style="height: 1000px; ">
-
+            <div class="y-line" :style="'height:'+height+'px; '">
+                <span v-for="(item,index) in yScale" :key="index" :style="{top:index * 50 + 2 + 'px'}" class="number">{{ item.id }}</span>
             </div>
         </div>
 
         <div  class="black"style="position: absolute; top:18px; left: 18px;">
-            <div  class="yellow" style="width: 1000px;height: 1000px; ">abcdefgh</div>
+            <div  class="yellow" :style="'width: '+width+'px;height:'+height+'px; '">abcdefgh</div>
         </div>
     </div>
 </template>
@@ -23,22 +23,25 @@
         name: "test",
         data(){
             return{
-                xScale:[
-                    {id:50,},
-                    {id:100,},
-                ]
+                xScale:[],
+                yScale:[],
+                width:5000,
+                height:5000,
+                stepLength:100,
+                xLeft:-200,
+                yTop:-500,
             }
         },
         mounted() {
 
-            on(document.getElementById('content'), 'mousewheel', this.show);
+            on(document.getElementById('content'), 'mousewheel', this.show);  //监听鼠标滚动控制刻度滚动
             on(document.getElementById('content'), 'scroll', this.show);
-
             on(document.getElementById('yZhou'), 'mousewheel', this.yshow);
             on(document.getElementById('yZhou'), 'scroll', this.yshow);
             on(document.getElementById('xZhou'), 'mousewheel', this.yshow);
             on(document.getElementById('xZhou'), 'scroll', this.yshow);
 
+            this.scaleCalc();
         },
         methods:{
             //监听内容区，修改标尺滚动条
@@ -50,7 +53,35 @@
             yshow(e){
                 document.getElementById('content').scrollTop = document.getElementById('yZhou').scrollTop;
                 document.getElementById('content').scrollLeft = document.getElementById('xZhou').scrollLeft;
-            }
+            },
+            // 计算刻度
+            scaleCalc () {
+                this.getCalc(this.xScale, this.width,'x');
+                this.getCalc(this.yScale, this.height,'y');
+            },
+            // 获取刻度方法
+            getCalc (array,length, direction) {
+                if(direction ==='x'){
+                    for (let i = this.xLeft; i < length * this.stepLength / 50; i += this.stepLength) {
+                        if (i % this.stepLength === 0) {
+                            array.push({ id: i })
+                        }
+                    }
+                }else if(direction ==='y'){
+                    for (let i = this.yTop; i < length * this.stepLength / 50; i += this.stepLength) {
+                        if (i % this.stepLength === 0) {
+                            array.push({ id: i })
+                        }
+                    }
+                }else{
+                    for (let i = 0; i < length * this.stepLength / 50; i += this.stepLength) {
+                        if (i % this.stepLength === 0) {
+                            array.push({ id: i })
+                        }
+                    }
+                }
+
+            },
         }
     }
 </script>

@@ -1,9 +1,13 @@
 import Vue from 'vue';
 import Router from 'vue-router';
-import Index from '@/examples/index';
-import PCIndex from '@/examples/index-pc';
-import demoIndex from '@/examples/demo';
+import index from '@/examples/index';
+import demo001 from '@/examples/ruler-test001';
+import testv002 from '@/examples/testv002';
+import demo003 from '@/examples/ruler-test003';
 import testIndex from '@/examples/test';
+import demoIndex from '@/examples/demo'
+
+
 /*const Index = () => import('../examples/index.vue');
 const PCIndex = () => import('../examples/index-pc.vue');*/
 
@@ -30,24 +34,34 @@ const router= new Router({
   mode:'history',
   routes: [
     {
-      path: '/home',
-      name: 'home',
-      component: Index
-    },
-    {
       path: '/',
       name: 'index',
-      component: PCIndex
+      component: index      //首页
     },
     {
-      path: '/demo',
-      name: 'demo',
-      component: demoIndex
+      path: '/demo001',
+      name: 'demo001',
+      component: demo001      //直接调用引入的标尺组件
+    },
+    {
+      path: '/testv002',
+      name: 'testv002',
+      component: testv002    //有画布 有标尺 有辅助线 （但是标尺不固定） 的组件 v0.0.2
+    },
+    {
+      path: '/demo003',
+      name: 'demo003',
+      component: demo003        // 调用标尺组件的测试 组件使用ruler-component 和画布结合尝试
     },
     {
       path: '/test',
       name: 'test',
       component: testIndex
+    },
+    {
+      path: '/demo',
+      name: 'demo',
+      component: demoIndex
     }
   ]
 });

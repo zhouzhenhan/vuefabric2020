@@ -1,6 +1,6 @@
 <template>
   <div class="container"  id="parentBox" >
-
+    <!---有画布 有标尺 有辅助线 （但是标尺不固定） 的应用 v0.0.2 -->
     <div  :style="'width:'+width+'px;height:'+height+'px;'" >
       <vue-fabric ref="canvas" :width="width" :height="height" id="can"
                   :value="value" :contentLayout="contentLayout" :visible="visible"
@@ -24,7 +24,7 @@ export default {
       stepLength:50,
       xLeft:0,
       yTop:0,
-      value:[{ type: 'v', site: 100 },{ type: 'v', site: 600 },{ type: 'h', site: 100 }],
+      value:[/*{ type: 'v', site: 100 },{ type: 'v', site: 600 },{ type: 'h', site: 100 }*/],
       contentLayout:{top: 0, left: 0, }, //top: 0, left: 0
 
       data: '123',
@@ -33,11 +33,11 @@ export default {
     };
   },
   created () {
-    this.width = document.body.offsetWidth;
+    /*this.width = document.body.offsetWidth;
     if (window.innerHeight)
       this.height = window.innerHeight;
     else if ((document.body) && (document.body.clientHeight))
-      this.height = document.body.clientHeight;
+      this.height = document.body.clientHeight;*/
 
 
   },

@@ -2,9 +2,9 @@ import Vue from 'vue';
 import App from './App';
 import router from './router';
 
-import {Fabric } from '../src/components';
+import {FabricCanvas } from '../src/components';
 
-Vue.use(Fabric);
+Vue.use(FabricCanvas);
 
 Vue.config.productionTip = false;
 

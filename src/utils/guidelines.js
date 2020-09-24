@@ -78,6 +78,8 @@ function initAligningGuidelines(canvas) {
 
             if (canvasObjects[i] === activeObject) continue;
 
+            if(canvasObjects[i].opacity === 0 || canvasObjects[i].visible === false || canvasObjects[i].selectable === false) continue; //if object not can see /happy change
+
             var objectCenter = canvasObjects[i].getCenterPoint(),
                 objectLeft = objectCenter.x,
                 objectTop = objectCenter.y,

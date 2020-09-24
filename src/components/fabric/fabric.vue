@@ -1,19 +1,20 @@
 <template>
   <div class="bigbox">
     <div class="content" :style="'width: '+ boxWidth+'px;height:'+boxHeight+'px;' "  id ="content" >
-      <div class="xZhou" id="xZhou" :style="'width: '+ (boxWidth-35)+'px;' ">
-        <div class="x-line" :style="'width: '+ width+'px;'">
-          <span v-for="(item,index) in xScale" :key="index" :style="{left:index * 50 + 2 + 'px'}" class="number">{{ item.id }}</span>
+      <div class="boxblock"></div>
+      <div class="xZhou" id="xZhou" :style="'width: '+ (boxWidth-returnXYshowcanvas(showXzhou,showYzhou))+'px; visibility:'+returnXYshow(showXzhou)+';margin-left:'+returnXYshowcanvas(showXzhou,showYzhou)+'px;'">
+        <div class="x-line" :style="'width: '+ (width)+'px;transform-origin:left; transform:scaleX('+canvasZoom+');'">
+          <span v-for="(item,index) in xScale"  :key="index" :style="{left:index * 50 + 2 + 'px'}" class="number">{{ item.id }}</span>
         </div>
       </div>
-      <div class="yZhou" id="yZhou" :style="'height: '+ (boxHeight-35) +'px;' ">
-        <div class="y-line" :style="'height:'+height+'px; '">
-          <span v-for="(item,index) in yScale" :key="index" :style="{top:index * 50 + 2 + 'px'}" class="number">{{ item.id }}</span>
+      <div class="yZhou" id="yZhou" :style="'height: '+ (boxHeight-returnXYshowcanvas(showXzhou,showYzhou)) +'px; visibility:'+returnXYshow(showYzhou)+';margin-top:'+returnXYshowcanvas(showXzhou,showYzhou)+'px;'">
+        <div class="y-line" :style="'height:'+ (height)+'px; transform-origin:top; transform:scaleY('+canvasZoom+');top:'+returnXYshowcanvas(showXzhou,showYzhou)+'px;'">
+          <span v-for="(item,index) in yScale"  :key="index" :style="{top:index * 50 + 2 + 'px'}" class="number">{{ item.id }}</span>
         </div>
       </div>
 
-      <div  class="black" style="position: absolute; top:18px; left: 18px;">
-        <div  class="yellow" :style="'width: '+width+'px;height:'+height+'px; '">
+      <div  class="black" :style="'position: absolute; top:'+returnXYshowcanvas(showXzhou,showYzhou)+'px; left: '+ returnXYshowcanvas(showYzhou,showXzhou)+'px;'">
+        <div  class="yellow" :style="'width: '+(width * canvasZoom)+'px;height:'+(height * canvasZoom)+'px; '">
          <!-- <fabricbak ref="canvas" :width="width" :height="height" id="can"></fabricbak>-->
           <div class="title">{{name}}:{{width}}*{{height}}</div>
           <canvas id="canvas" :width="width" :height="height"></canvas>
@@ -25,14 +26,13 @@
 </template>
 
 <script>
-  import fabricbak from './fabric_bak'
   import { on, off } from '../../examples/event'
   import Utils from '../../utils/utils';
   import initAligningGuidelines  from '../../utils/guidelines';
 
   export default {
-    name: 'VueFabric',
-    components:{fabricbak},
+    name: 'FabricCanvas',
+    components:{},
     props: {
       width: {
         type: Number,
@@ -50,26 +50,32 @@
         type: Number,
         required: true
       },
-      stepLength: {
+      stepLengthp: {
         type: Number,
         default: 50
+      },
+      showRuler:{
+        type:Array,
+        default: () => [true,true],
       }
     },
     data(){
       return{
         name:'canvas',
         canvas:null,
+        canvasZoom:1,
 
         xScale:[],
         yScale:[],
-        /*width:5000,
-        height:5000,*/
-
-        xLeft:-200,
-        yTop:-500,
+        xLeft:0,
+        yTop:0,
+        stepLength:this.stepLengthp,
+        showXzhou:this.showRuler[0],
+        showYzhou:this.showRuler[1],
       }
     },
     mounted() {
+      let that = this;
 
       on(document.getElementById('content'), 'mousewheel', this.show);  //监听鼠标滚动控制刻度滚动
       on(document.getElementById('content'), 'scroll', this.show);
@@ -77,6 +83,22 @@
       on(document.getElementById('yZhou'), 'scroll', this.yshow);
       on(document.getElementById('xZhou'), 'mousewheel', this.yshow);
       on(document.getElementById('xZhou'), 'scroll', this.yshow);
+
+
+      let keyCode = null;
+      document.onkeydown = function(e) {
+        console.log('keyCode:',window.event.keyCode);
+        if(event.shiftKey && window.event.keyCode===107){
+          that.ChangeZoom(1)
+        }else if(event.shiftKey && window.event.keyCode===109){
+          that.ChangeZoom(0)
+        }
+      };
+
+      document.onkeyup = function(e) {
+        /*console.log(window.event);
+        keyCode = null*/
+      };
 
       this.scaleCalc();
 
@@ -134,7 +156,9 @@
           action: 'rotate'
         }
       });
-      let that = this;
+
+      let Top = 0; //用作按住shift时,取横坐标
+      let Left = 0;//用作按住shift时,取纵坐标
       this.canvas.controlsAboveOverlay = false;
       this.canvas.skipOffscreen = true;
       this.canvas.preserveObjectStacking = true;
@@ -167,24 +191,55 @@
       });
       this.canvas.on('object:moved', function (options) {
         that.$emit('object:moved', options);
+        //矩形 等元素边框不变形计算宽高，缩放比例为1，宽高取整
+        if(options.target.component==='component' && options.target.isType ==='Rect'){
+          options.target.set('left',  parseInt(options.target.left));
+          options.target.set('top',  parseInt(options.target.top));
+        }
       });
       this.canvas.on('object:modified', function (options) {
+        console.log('modified',options.target);
         that.$emit('object:modified', options);
+        Top = options.target.top;
+        Left = options.target.left;
       });
       this.canvas.on('object:rotating', function (options) {
         that.$emit('object:rotating', options);
+        //矩形 等元素边框不变形计算宽高，缩放比例为1，宽高取整
+        if(options.target.component==='component' && options.target.isType ==='Rect'){
+          options.target.set('angle',  parseInt(options.target.angle));
+        }
       });
       this.canvas.on('object:scaling', function (options) {
         that.$emit('object:scaling', options);
       });
       this.canvas.on('object:scaled', function (options) {
         that.$emit('object:scaled', options);
+        //矩形 等元素边框不变形计算宽高，缩放比例为1，宽高取整
+        if(options.target.component==='component' && options.target.isType ==='Rect'){
+          options.target.set('width',  parseInt(options.target.width * options.target.scaleX));
+          options.target.set('height',  parseInt(options.target.height * options.target.scaleY));
+          options.target.set('scaleX',  1);
+          options.target.set('scaleY',  1);
+        }
+
       });
       this.canvas.on('object:selected', function (options) {
         that.$emit('object:selected', options);
+        console.log(options.target.width,options.target.height,options.target.angle,options.target.left,options.target.top);
       });
       this.canvas.on('object:moving', function (options) {
         that.$emit('object:moving', options);
+        //矩形 等元素边框不变形计算宽高，缩放比例为1，宽高取整
+        if(options.target.component==='component' && options.target.isType ==='Rect'){
+          if(options.transform.shiftKey){
+            if( Math.abs(options.target.left-Left) > Math.abs(options.target.top - Top)){
+              options.target.set('top',  Top);
+            }else{
+              options.target.set('left',  Left);
+            }
+          }
+        }
       });
       this.canvas.on('selection:updated', function (options) {
         that.$emit('selection:updated', options);
@@ -197,6 +252,7 @@
       });
       this.canvas.on('before:selection:cleared', function (options) {
         that.$emit('before:selection:cleared', options);
+
       });
       this.canvas.on('text:changed', function(options) {
         that.$emit('text:changed', options);
@@ -229,6 +285,23 @@
 
     },
     methods:{
+      //标尺显示与否
+      returnXYshow(b){
+        if(b===true){
+          return 'visible';
+        }else{
+          return 'hidden';
+        }
+      },
+      //标尺显示与否 判断画布坐标
+      returnXYshowcanvas(b1,b2){
+        console.log(b1===true && b2===true);
+        if(b1===true && b2===true){
+          return 18;
+        }else{
+          return 0;
+        }
+      },
       //监听内容区，修改标尺滚动条
       show(e){
         document.getElementById('yZhou').scrollTop = document.getElementById('content').scrollTop;
@@ -241,14 +314,17 @@
       },
       // 计算刻度
       scaleCalc () {
-        this.getCalc(this.xScale, this.width,'x');
-        this.getCalc(this.yScale, this.height,'y');
+        this.xScale = this.getCalc(this.xScale, this.width*this.canvasZoom,'x');
+        this.yScale = this.getCalc(this.yScale, this.height*this.canvasZoom,'y');
+       // console.log(this.xScale,);
       },
       // 获取刻度方法
       getCalc (array,length, direction) {
+        //console.log('间隔：',this.stepLength);
+        array = [];
         if(direction ==='x'){
           for (let i = this.xLeft; i < length * this.stepLength / 50; i += this.stepLength) {
-            if (i % this.stepLength === 0) {
+            if (i % this.stepLength=== 0) {
               array.push({ id: i })
             }
           }
@@ -266,6 +342,9 @@
           }
         }
 
+      //  console.log('new',direction,JSON.stringify(array));
+        return array;
+
       },
 
 
@@ -273,7 +352,6 @@
       setStackingtrue(){
         this.canvas.preserveObjectStacking = true;
       },
-
       //获取当前活跃元素
       getEditObj () {
         let obj = this.canvas.getActiveObject();
@@ -289,6 +367,7 @@
         this.canvas.setActiveObject(obj);
         this.canvas.renderAll();
       },
+
       //单个删除 多个删除 不支持组合删除
       removeCurrentObj () {
         let obj = this.canvas.getActiveObject();
@@ -303,6 +382,7 @@
         }
         this.canvas.renderAll();
       },
+
       //删除当前活跃元素
       removecurrentObj(){
         let obj = this.canvas.getActiveObject();
@@ -311,6 +391,7 @@
       //删除指定元素
       removeObj(obj){
         this.canvas.remove(obj);
+        this.canvas.renderAll();
       },
       //新增指定元素
       addObj(obj){
@@ -322,17 +403,33 @@
         this.canvas.setZoom(n);
         this.canvas.renderAll();
       },
+      //快捷键缩放 比例尺计算缩放
+      ChangeZoom(n){
+        this.canvasZoom = this.canvas.getZoom();
+        if(n===1){     //增加
+          this.canvasZoom = this.canvasZoom + 0.1;
+          this.canvas.setWidth(this.width * this.canvasZoom);
+          this.canvas.setHeight(this.height * this.canvasZoom);
+          this.canvas.setZoom(this.canvasZoom);
+          this.canvas.renderAll();
+        }else if(n===0){  //减小
+          if(this.width * (this.canvasZoom- 0.1) < this.boxWidth || this.height * (this.canvasZoom- 0.1) < this.boxHeight){
+            return;
+          }
+          this.canvasZoom = this.canvasZoom - 0.1;
+          this.canvas.setWidth(this.width * this.canvasZoom);
+          this.canvas.setHeight(this.height * this.canvasZoom);
+          this.canvas.setZoom(this.canvasZoom);
+          this.canvas.renderAll();
+        }
+      },
       //设置画布背景颜色
       setbackground(color){
         this.canvas.backgroundColor = color;
         this.canvas.renderAll();
       },
-      //禁止选择
-      setNomove(){
-        this.canvas.selection = false;
-        this.canvas.renderAll();
-      },
-      //取消活跃元素的选择
+
+      //取消所有活跃元素的选择
       discardActive () {
         this.canvas.discardActiveObject();
         this.canvas.discardActiveGroup();
@@ -344,7 +441,56 @@
         this.canvas.moveTo(obj,index);
         this.canvas.requestRenderAll();
         this.canvas.renderAll();
+      },
 
+      //模板设置宽高
+      setWidth(width){
+        this.canvas.setWidth(width);
+      },
+      //模板设置宽高
+      setHeight(height){
+        this.canvas.setHeight(height);
+      },
+      //模板设置显示
+      setShow(id){
+         let objects = this.canvas.getObjects();
+         for(let i in objects){
+           if(objects[i].id === id){
+             objects[i].set('selectable',true);
+             objects[i].set('visible',true);
+             objects[i].set('opacity',1);
+             this.canvas.requestRenderAll();
+             this.canvas.renderAll();
+           }
+         }
+      },
+      //模板设置隐藏
+      setHidden(id){
+        let objects = this.canvas.getObjects();
+        for(let i in objects){
+          if(objects[i].id === id){
+            objects[i].set('selectable',false);
+            objects[i].set('visible',false);
+            objects[i].set('opacity',0);
+            this.canvas.requestRenderAll();
+            this.canvas.renderAll();
+          }
+        }
+      },
+      //禁止拖拽选择和多选
+      setNomove(){
+        this.canvas.selection = false;
+        this.canvas.renderAll();
+      },
+      //组件修改名字
+      rename(id,name){
+        let objects = this.canvas.getObjects();
+        for(let i in objects){
+          if(objects[i].id === id){
+            objects[i].set('name',name);
+            this.canvas.requestRenderAll();
+          }
+        }
       },
 
 
@@ -361,6 +507,8 @@
         options = Object.assign({ width: 50, height: 30, left: 50, top: 50,  padding: 0, angle: 0, scaleX: 1,  scaleY: 1, }, options);
         let rect = new fabric.Rect({
           ...options,
+          name:options.name?options.name:'Rect',
+          component:"component",
           isType:'Rect',
           isDiff: 'static',
           selectable: options.selectable!==false ? true : options.selectable,                 //元素是否可选中
@@ -422,11 +570,13 @@
   }
   .content{
     position:relative;
+    /*padding-right: 10px;*/
    /* width: 600px;
     height: 600px;*/
     border: 1px solid #ddd;
     margin:100px auto;
-    overflow: scroll;
+    overflow: auto;
+    background: #f1f1f1;
   }
   .x-line{
     width: 100%;
@@ -434,6 +584,7 @@
     left: 18px;
     opacity: 0.6;
     background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAASCAMAAAAuTX21AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAAlQTFRFMzMzAAAA////BqjYlAAAACNJREFUeNpiYCAdMDKRCka1jGoBA2JZZGshiaCXFpIBQIABAAplBkCmQpujAAAAAElFTkSuQmCC);
+    border-right:1px dashed #000;
   }
   .y-line{
     width: 18px;
@@ -441,6 +592,8 @@
     top: 18px;
     opacity: 0.6;
     background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAAyCAMAAABmvHtTAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAAlQTFRFMzMzAAAA////BqjYlAAAACBJREFUeNpiYGBEBwwMTGiAakI0NX7U9aOuHyGuBwgwAH6bBkAR6jkzAAAAAElFTkSuQmCC);
+
+    border-bottom:1px dashed #000;
   }
   .number{
     position: absolute;
@@ -464,6 +617,18 @@
    /* width: 572px;*/
     overflow-x: scroll;
     height: 18px;
+    -moz-user-select:none; /*火狐*/
+    -webkit-user-select:none; /*webkit浏览器*/
+    -ms-user-select:none; /*IE10*/
+    -khtml-user-select:none; /*早期浏览器*/
+    user-select:none;
+  }
+  .boxblock{
+    position: fixed;
+    z-index:2;
+    width: 18px;
+    height: 18px;
+    background: #ddd;
   }
   .yZhou{
     position: fixed;
@@ -472,6 +637,11 @@
     width: 18px;
     overflow-y: scroll;
    /* height: 572px;*/
+    -moz-user-select:none; /*火狐*/
+    -webkit-user-select:none; /*webkit浏览器*/
+    -ms-user-select:none; /*IE10*/
+    -khtml-user-select:none; /*早期浏览器*/
+    user-select:none;
   }
   .xZhou::-webkit-scrollbar ,.yZhou::-webkit-scrollbar{
     display:none;

@@ -1,6 +1,7 @@
 <template>
     <div>
-        <vue-fabric ref="canvas" :width="width" :height="height" :boxWidth="boxWidth" :boxHeight="boxHeight" :stepLength="stepLength" id="can"></vue-fabric>
+       <!-- <vue-fabric ref="canvas" :width="width" :height="height" :boxWidth="boxWidth" :boxHeight="boxHeight" :stepLengthp="stepLength" id="can"></vue-fabric>-->
+        <Fabric-Canvas ref="canvas" :width="width" :height="height" :boxWidth="boxWidth" :boxHeight="boxHeight" :stepLengthp="stepLength" id="can"></Fabric-Canvas>
     </div>
 </template>
 
@@ -11,11 +12,11 @@
         data(){
             return{
                 data: '123',
-                width:5000,      //标尺、画布的宽
-                height:1000,     //标尺、画布的高
+                width:1000,      //标尺、画布的宽
+                height:600,     //标尺、画布的高
                 boxWidth: 1000,  //外框宽
-                boxHeight:600,   //外框高
-                stepLength:100,  //标尺单位 每格
+                boxHeight:500,   //外框高
+                stepLength:50,  //标尺单位 每格
 
             }
         },
@@ -31,7 +32,7 @@
                 width: 100,
                 height: 200,
                 left: 100,
-                top: 100,
+                top: 0,
                 padding: 0,
                 angle: 0,
                 fillColor:'#eee',
@@ -40,13 +41,13 @@
                 bordersStyle: [0,0],
                 scaleX:1,
                 scaleY:1,
-                rx: 5,
-                ry: 5,
+                rx: 0,
+                ry: 0,
                 skewX: 0,
                 skewY: 0,
             });
 
-            let rectdata2 = this.$refs.canvas.createRect({
+            /*let rectdata2 = this.$refs.canvas.createRect({
                 id: 1,
                 width: 20,
                 height: 30,
@@ -99,6 +100,26 @@
                 width: 60,
                 height: 80,
                 left: 700,
+                top: 100,
+            });*/
+
+            this.$refs.canvas.createRect({
+                id: 2,
+                width: 60,
+                height: 80,
+                left: 700,
+                top: 100,
+            });
+
+            this.$refs.canvas.setNomove();
+
+            this.$refs.canvas.rename(1,'我是边框矩形');
+
+            this.$refs.canvas.createRect({
+                id: 3,
+                width: 100,
+                height: 30,
+                left: 200,
                 top: 100,
             });
 

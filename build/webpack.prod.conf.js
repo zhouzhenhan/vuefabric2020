@@ -25,8 +25,8 @@ const webpackConfig = merge(baseWebpackConfig, {
   output: {
     path: config.build.assetsRoot,
     publicPath: config.build.assetsPublicPath,
-    filename: 'vue-fabric.min.js',
-    library: 'vue-fabric',
+    filename: 'vue-fabric-canvas.min.js',
+    library: 'vue-fabric-canvas',
     libraryTarget: 'umd'
   },
   plugins: [
@@ -43,7 +43,7 @@ const webpackConfig = merge(baseWebpackConfig, {
     // extract css into its own file
     new ExtractTextPlugin({
       // filename: utils.assetsPath('css/[name].[contenthash].css')
-       filename: 'vue-fabric.min.css'
+       filename: 'vue-fabric-canvas.min.css'
     }),
     new OptimizeCSSPlugin()
   ]

@@ -1,5 +1,5 @@
-import Fabric from "./fabric";
+import FabricCanvas from "./fabric";
 
 export {
-  Fabric
+  FabricCanvas
 };

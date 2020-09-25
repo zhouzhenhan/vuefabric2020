@@ -6,6 +6,7 @@ import testv001 from '@/examples/testv001';
 import testv002 from '@/examples/testv002';
 import demo003 from '@/examples/ruler-test003';
 import testIndex from '@/examples/test2';
+import test3 from '@/examples/test3';
 import demoIndex from '@/examples/demo'
 
 
@@ -62,6 +63,11 @@ const router= new Router({
       path: '/test',
       name: 'test',
       component: testIndex
+    },
+    {
+      path: '/test3',
+      name: 'test3',
+      component: test3
     },
     {
       path: '/demo',

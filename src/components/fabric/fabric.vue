@@ -1,19 +1,20 @@
 <template>
-  <div class="bigbox">
-   <div class="content" :style="'width: '+ boxWidth+'px;height:'+boxHeight+'px;' "  id ="content" >
-     <div class="scrollx" :style="'height:'+boxHeight+'px;margin-left:'+ (boxWidth-8)+'px;'" v-if="showRuler[1]?(height+18)>boxHeight:height>boxHeight"><i  id="scrolly" v-drag></i></div>
-     <div class="scrolly" :style="'width:'+boxWidth+'px;margin-top:'+ (boxHeight-8)+'px;'" v-if="showRuler[0]?(width+18)>boxWidth:width>boxWidth"><i  id="scrollx"  v-drag></i></div>
+  <div class="bigbox" :style="'width: '+ boxWidth+'px;height:'+boxHeight+'px;' ">
+      <div class="scrollx" :style="'height:'+boxHeight+'px;margin-left:'+ (boxWidth-8)+'px;'" v-if="showRuler[1]?(height+18)>boxHeight:height>boxHeight"><i  id="scrolly" v-drag></i></div>
+      <div class="scrolly" :style="'width:'+boxWidth+'px;margin-top:'+ (boxHeight-8)+'px;'" v-if="showRuler[0]?(width+18)>boxWidth:width>boxWidth"><i  id="scrollx"  v-drag></i></div>
       <div class="boxblock" v-if="showRuler[0]&&showRuler[1]"></div>
       <div class="xZhou" id="xZhou" :style="'width: '+ (boxWidth-returnXYshowcanvas(showXzhou,showYzhou))+'px; visibility:'+returnXYshow(showXzhou)+';margin-left:'+returnXYshowcanvas(showXzhou,showYzhou)+'px;'">
-        <div class="x-line" :style="'width: '+ (width)+'px;transform-origin:left; transform:scaleX('+canvasZoom+');'">
-          <span v-for="(item,index) in xScale"  :key="index" :style="{left:index * 50 + 2 + 'px'}" class="number">{{ item.id }}</span>
-        </div>
+          <div class="x-line" :style="'width: '+ (width)+'px;transform-origin:left; transform:scaleX('+canvasZoom+');'">
+              <span v-for="(item,index) in xScale"  :key="index" :style="{left:index * 50 + 2 + 'px'}" class="number">{{ item.id }}</span>
+          </div>
       </div>
       <div class="yZhou" id="yZhou" :style="'height: '+ (boxHeight-returnXYshowcanvas(showXzhou,showYzhou)) +'px; visibility:'+returnXYshow(showYzhou)+';margin-top:'+returnXYshowcanvas(showXzhou,showYzhou)+'px;'">
-        <div class="y-line" :style="'height:'+ (height)+'px; transform-origin:top; transform:scaleY('+canvasZoom+');top:'+returnXYshowcanvas(showXzhou,showYzhou)+'px;'">
-          <span v-for="(item,index) in yScale"  :key="index" :style="{top:index * 50 + 2 + 'px'}" class="number">{{ item.id }}</span>
-        </div>
+          <div class="y-line" :style="'height:'+ (height)+'px; transform-origin:top; transform:scaleY('+canvasZoom+');top:'+returnXYshowcanvas(showXzhou,showYzhou)+'px;'">
+              <span v-for="(item,index) in yScale"  :key="index" :style="{top:index * 50 + 2 + 'px'}" class="number">{{ item.id }}</span>
+          </div>
       </div>
+
+   <div class="content" :style="'width: '+ boxWidth+'px;height:'+boxHeight+'px;' "  id ="content" >
 
       <div  class="black" :style="'position: absolute; top:'+returnXYshowcanvas(showXzhou,showYzhou)+'px; left: '+ returnXYshowcanvas(showYzhou,showXzhou)+'px;'">
         <div  class="yellow" :style="'width: '+(width * canvasZoom)+'px;height:'+(height * canvasZoom)+'px; '">
@@ -74,6 +75,8 @@
         stepLength:this.stepLengthp,
         showXzhou:this.showRuler[0],
         showYzhou:this.showRuler[1],
+        rulertop:0,
+        rulerleft:0,
       }
     },
     directives: {
@@ -174,6 +177,13 @@
       }
     },
     mounted() {
+        window.onresize = (() => {
+            this.rulertop =  window.pageYOffset ;
+            this.rulerleft =  window.pageYOffset ;
+            console.log(document.getElementById('content').offsetTop,
+            document.documentElement.scrollTop , window.pageYOffset );
+
+        });
       let that = this;
 
       on(document.getElementById('content'), 'mousewheel', this.show);  //监听鼠标滚动控制刻度滚动
@@ -432,22 +442,6 @@
       yshow(e){
         document.getElementById('content').scrollTop = document.getElementById('yZhou').scrollTop;
         document.getElementById('content').scrollLeft = document.getElementById('xZhou').scrollLeft;
-
-        /*if(this.showRuler[0]?this.height>(this.boxHeight+18):this.height>this.boxHeight){
-          let scrollTop = document.getElementById('content').scrollTop;
-          let maxY = document.getElementById('scrolly').parentNode.offsetHeight - 8 - 50 - 18;
-          let maxscroll = (document.getElementById('canvas').offsetHeight-document.getElementById('content').offsetHeight )+30;
-          let Top = (scrollTop * maxY)/maxscroll +18;
-          document.getElementById('scrolly').style.top = Top +'px';
-        }
-
-        if(this.showRuler[1]?this.width>(this.boxWidth+18):this.width>this.boxWidth){
-          let scrollLeft = document.getElementById('content').scrollLeft;
-          let maxX = document.getElementById('scrollx').parentNode.offsetWidth - 8 - 50 - 18;
-          let maxscrollx = (document.getElementById('canvas').offsetWidth-document.getElementById('content').offsetWidth )+30;
-          let Left = (scrollLeft * maxX)/maxscrollx +18;
-          document.getElementById('scrollx').style.left = Left +'px';
-        }*/
       },
       // 计算刻度
       scaleCalc () {
@@ -703,15 +697,13 @@
 
 <style scoped lang="scss">
   .bigbox{
-
+      position:relative;
+      border: 1px solid #ddd;
+      margin:50px auto;
+      overflow: hidden;
   }
   .content{
     position:relative;
-    /*padding-right: 10px;*/
-   /* width: 600px;
-    height: 600px;*/
-    border: 1px solid #ddd;
-    margin:100px auto;
     overflow: auto;
     background: #f1f1f1;
   }
@@ -748,7 +740,7 @@
   }
 
   .xZhou{
-    position: fixed;
+    position: absolute;
     margin-left:18px;
     z-index: 2;
    /* width: 572px;*/
@@ -761,14 +753,14 @@
     user-select:none;
   }
   .boxblock{
-    position: fixed;
+    position: absolute;
     z-index:2;
     width: 18px;
     height: 18px;
     background: #ddd;
   }
   .yZhou{
-    position: fixed;
+    position: absolute;
     margin-top:18px;
     z-index: 2;
     width: 18px;
@@ -788,7 +780,7 @@
     display: none;
   }
   .scrollx{
-    position: fixed;
+    position: absolute;
     z-index: 2;
     width: 10px;
     margin-left:992px;
@@ -817,7 +809,7 @@
   }
 
   .scrolly{
-    position: fixed;
+    position: absolute;
     z-index: 2;
     height: 10px;
     margin-top:492px;

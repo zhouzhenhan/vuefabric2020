@@ -1,6 +1,7 @@
 <template>
-    <div>
-       <!-- <vue-fabric ref="canvas" :width="width" :height="height" :boxWidth="boxWidth" :boxHeight="boxHeight" :stepLengthp="stepLength" id="can"></vue-fabric>-->
+    <div class="">
+        <div style=" background: red; height: 500px;">{{123}}</div>
+
         <Fabric-Canvas ref="canvas" :width="width" :height="height" :boxWidth="boxWidth" :boxHeight="boxHeight"
                        :showRuler="showRuler" :stepLengthp="stepLength"
                        id="can"></Fabric-Canvas>
@@ -17,16 +18,21 @@
                 width:1500,      //标尺、画布的宽
                 height:1000,     //标尺、画布的高
                 boxWidth: 1200,  //外框宽
-                boxHeight:600,   //外框高
+                boxHeight:500,   //外框高
                 stepLength:50,  //标尺单位 每格
                 showRuler:[true,true] //横纵标尺是否显示
             }
         },
         mounted () {
+            /*this.boxHeight = document.documentElement.clientHeight-document.getElementById('demohead').offsetHeight-10;
+            window.onresize = ()=>{
+                return (()=>{
+                    this.boxHeight = document.documentElement.clientHeight-document.getElementById('demohead').offsetHeight-10;
+                })();
+            };*/
+
             var canvas =  this.$refs.canvas.canvas;
-
             fabric.Object.prototype.originX = fabric.Object.prototype.originY = 'center';
-
 
             //圆角矩形
             let rectdata = this.$refs.canvas.createRect({
@@ -133,5 +139,8 @@
 </script>
 
 <style scoped>
-
+.demobox{
+    display: flex;
+    flex-direction: column;
+}
 </style>

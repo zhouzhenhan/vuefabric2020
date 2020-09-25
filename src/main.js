@@ -3,7 +3,10 @@ import App from './App';
 import router from './router';
 
 import {FabricCanvas } from '../src/components';
+import GeminiScrollbar from 'vue-gemini-scrollbar'
 
+
+Vue.use(GeminiScrollbar);
 Vue.use(FabricCanvas);
 
 Vue.config.productionTip = false;

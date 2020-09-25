@@ -1,7 +1,9 @@
 <template>
   <div class="bigbox">
-    <div class="content" :style="'width: '+ boxWidth+'px;height:'+boxHeight+'px;' "  id ="content" >
-      <div class="boxblock"></div>
+   <div class="content" :style="'width: '+ boxWidth+'px;height:'+boxHeight+'px;' "  id ="content" >
+     <div class="scrollx" v-if="showRuler[1]?(height+18)>boxHeight:height>boxHeight"><i  id="scrolly" v-drag></i></div>
+     <div class="scrolly" v-if="showRuler[0]?(width+18)>boxWidth:width>boxWidth"><i  id="scrollx"  v-drag></i></div>
+      <div class="boxblock" v-if="showRuler[0]&&showRuler[1]"></div>
       <div class="xZhou" id="xZhou" :style="'width: '+ (boxWidth-returnXYshowcanvas(showXzhou,showYzhou))+'px; visibility:'+returnXYshow(showXzhou)+';margin-left:'+returnXYshowcanvas(showXzhou,showYzhou)+'px;'">
         <div class="x-line" :style="'width: '+ (width)+'px;transform-origin:left; transform:scaleX('+canvasZoom+');'">
           <span v-for="(item,index) in xScale"  :key="index" :style="{left:index * 50 + 2 + 'px'}" class="number">{{ item.id }}</span>
@@ -16,11 +18,11 @@
       <div  class="black" :style="'position: absolute; top:'+returnXYshowcanvas(showXzhou,showYzhou)+'px; left: '+ returnXYshowcanvas(showYzhou,showXzhou)+'px;'">
         <div  class="yellow" :style="'width: '+(width * canvasZoom)+'px;height:'+(height * canvasZoom)+'px; '">
          <!-- <fabricbak ref="canvas" :width="width" :height="height" id="can"></fabricbak>-->
-          <div class="title">{{name}}:{{width}}*{{height}}</div>
+          <div class="title">{{name}}:{{width}}*{{height}} </div>
           <canvas id="canvas" :width="width" :height="height"></canvas>
         </div>
       </div>
-    </div>
+   </div>
   </div>
 
 </template>
@@ -74,6 +76,103 @@
         showYzhou:this.showRuler[1],
       }
     },
+    directives: {
+      drag: {
+        inserted: function (el, binding, vnode) {
+          vnode = vnode.elm;
+
+          el.dragstart = ((event)=>{
+            console.log('drag 0');
+            event.preventDefault();
+            document.onmousemove = document.onmouseup = null
+          });
+          el.ondrag = ((event)=>{
+            console.log('drag 1');
+            event.preventDefault();
+            document.onmousemove = document.onmouseup = null;
+            return false;
+          });
+
+          el.onmousedown = ((event) => {
+            let dragflag = true;
+            if (event.target.id !== "scrollx" && event.target.id !== "scrolly") {
+              dragflag = false;
+              return;
+            }
+
+            // 获取鼠标在滑块中的位置
+            let mouseX = event.clientX - vnode.offsetLeft;
+            let mouseY = event.clientY - vnode.offsetTop;
+            let direction = null;
+
+            if(event.target.id === "scrollx"){
+              direction = 'x';
+            }else if(event.target.id === "scrolly"){
+              direction = 'y';
+            }
+
+            // 绑定移动和停止函数
+            document.onmousemove = ((event) => {
+              let left, top;
+              left = event.clientX - mouseX;
+              top = event.clientY - mouseY;
+
+              // 赋值移动
+              if(direction==='x'){
+                if (event.clientY < mouseY-50 ||  event.clientY > mouseY+50) {
+                  dragflag = false;
+                  return
+                }
+                if(dragflag){
+                  // 获取滑块在页面中距X轴的最小、最大 位置
+                  let minX = 18;
+                  let maxX = vnode.parentNode.offsetWidth - 8 - 50;
+                  if (left <= minX) {
+                    left = minX
+                  } else if (left >= maxX) {
+                    left = maxX
+                  }
+
+                  vnode.style.left = left + 'px';
+                  let maxscroll = (document.getElementById('canvas').offsetWidth-document.getElementById('content').offsetWidth )+ 30;
+                  let scrollLeft = maxscroll * ((left-18)/(maxX-18));
+                  document.getElementById('content').scrollLeft = document.getElementById('xZhou').scrollLeft = scrollLeft;
+                }
+
+
+              }else{
+                if (event.clientX < mouseX-50 ||  event.clientX > mouseX+50) {
+                  dragflag = false;
+                  return
+                }
+                if(dragflag) {
+                  // 获取滑块在页面中距Y轴的最小、最大 位置
+                  let minY = 18;
+                  let maxY =vnode.parentNode.offsetHeight - 8 - 50;
+                  if (top <= minY) {
+                    top = minY
+                  } else if (top >= maxY) {
+                    top = maxY
+                  }
+
+                  vnode.style.top = top + 'px';
+                  let maxscroll = (document.getElementById('canvas').offsetHeight - document.getElementById('content').offsetHeight) + 30;
+                  let scrollTop = maxscroll * ((top - 18) / (maxY - 18));
+                  document.getElementById('content').scrollTop = document.getElementById('yZhou').scrollTop = scrollTop;
+                }
+
+              }
+
+
+            });
+            document.onmouseup = ((event) => {
+              dragflag = false;
+              document.onmousemove = document.onmouseup = null
+            })
+          })
+        }
+      }
+    },
     mounted() {
       let that = this;
 
@@ -83,6 +182,8 @@
       on(document.getElementById('yZhou'), 'scroll', this.yshow);
       on(document.getElementById('xZhou'), 'mousewheel', this.yshow);
       on(document.getElementById('xZhou'), 'scroll', this.yshow);
+
+    //  on(document.getElementById('scrollx'), 'mousemove', this.xmousemove);
 
 
       let keyCode = null;
@@ -285,6 +386,9 @@
 
     },
     methods:{
+     /* xmousemove(e){
+        console.log('移动了：',e);
+      },*/
       //标尺显示与否
       returnXYshow(b){
         if(b===true){
@@ -295,7 +399,7 @@
       },
       //标尺显示与否 判断画布坐标
       returnXYshowcanvas(b1,b2){
-        console.log(b1===true && b2===true);
+       // console.log(b1===true && b2===true);
         if(b1===true && b2===true){
           return 18;
         }else{
@@ -306,11 +410,44 @@
       show(e){
         document.getElementById('yZhou').scrollTop = document.getElementById('content').scrollTop;
         document.getElementById('xZhou').scrollLeft = document.getElementById('content').scrollLeft;
+
+        if(this.showRuler[1]?(this.height+18)>this.boxHeight:this.height>this.boxHeight){
+          let scrollTop = document.getElementById('content').scrollTop;
+          let maxY = document.getElementById('scrolly').parentNode.offsetHeight - 8 - 50 - 18;
+          let maxscroll = (document.getElementById('canvas').offsetHeight-document.getElementById('content').offsetHeight )+30;
+          let Top = (scrollTop * maxY)/maxscroll +18;
+          document.getElementById('scrolly').style.top = Top +'px';
+        }
+
+        if(this.showRuler[0]?(this.width+18)>this.boxWidth:this.width>this.boxWidth){
+          let scrollLeft = document.getElementById('content').scrollLeft;
+          let maxX = document.getElementById('scrollx').parentNode.offsetWidth - 8 - 50 - 18;
+          let maxscrollx = (document.getElementById('canvas').offsetWidth-document.getElementById('content').offsetWidth )+30;
+          let Left = (scrollLeft * maxX)/maxscrollx +18;
+          document.getElementById('scrollx').style.left = Left +'px';
+        }
+
       },
       //监听标尺滚动，修改内容区
       yshow(e){
         document.getElementById('content').scrollTop = document.getElementById('yZhou').scrollTop;
         document.getElementById('content').scrollLeft = document.getElementById('xZhou').scrollLeft;
+
+        /*if(this.showRuler[0]?this.height>(this.boxHeight+18):this.height>this.boxHeight){
+          let scrollTop = document.getElementById('content').scrollTop;
+          let maxY = document.getElementById('scrolly').parentNode.offsetHeight - 8 - 50 - 18;
+          let maxscroll = (document.getElementById('canvas').offsetHeight-document.getElementById('content').offsetHeight )+30;
+          let Top = (scrollTop * maxY)/maxscroll +18;
+          document.getElementById('scrolly').style.top = Top +'px';
+        }
+
+        if(this.showRuler[1]?this.width>(this.boxWidth+18):this.width>this.boxWidth){
+          let scrollLeft = document.getElementById('content').scrollLeft;
+          let maxX = document.getElementById('scrollx').parentNode.offsetWidth - 8 - 50 - 18;
+          let maxscrollx = (document.getElementById('canvas').offsetWidth-document.getElementById('content').offsetWidth )+30;
+          let Left = (scrollLeft * maxX)/maxscrollx +18;
+          document.getElementById('scrollx').style.left = Left +'px';
+        }*/
       },
       // 计算刻度
       scaleCalc () {
@@ -645,6 +782,68 @@
   }
   .xZhou::-webkit-scrollbar ,.yZhou::-webkit-scrollbar{
     display:none;
+  }
+
+  .content::-webkit-scrollbar{
+    display: none;
+  }
+  .scrollx{
+    position: fixed;
+    z-index: 2;
+    width: 10px;
+    margin-left:992px;
+    height: 500px;
+    /*background:rgba(0,0,0,0.1);*/
+    i{
+      position: absolute;
+      cursor: pointer;
+      z-index: 99999;
+      top:19px;
+      right: 1px;
+      width: 8px;
+      height: 50px;
+      background: rgba(0,0,0,0.2);
+      opacity: 0.8;
+      border-radius: 100px;
+      -moz-user-select:none; /*火狐*/
+      -webkit-user-select:none; /*webkit浏览器*/
+      -ms-user-select:none; /*IE10*/
+      -khtml-user-select:none; /*早期浏览器*/
+      user-select:none;
+      &:hover{
+        opacity: 1;
+      }
+    }
+  }
+
+  .scrolly{
+    position: fixed;
+    z-index: 2;
+    height: 10px;
+    margin-top:492px;
+    width: 1000px;
+  /*  background:rgba(0,0,0,0.1);*/
+    i{
+      position: absolute;
+      cursor: pointer;
+      z-index: 99999;
+      bottom:1px;
+      left: 19px;
+      width: 50px;
+      height: 8px;
+      background: rgba(0,0,0,0.2);
+      opacity: 0.8;
+      border-radius: 100px;
+      -moz-user-select:none; /*火狐*/
+      -webkit-user-select:none; /*webkit浏览器*/
+      -ms-user-select:none; /*IE10*/
+      -khtml-user-select:none; /*早期浏览器*/
+      user-select:none;
+      &:hover{
+        opacity: 1;
+      }
+    }
+
   }
 
 

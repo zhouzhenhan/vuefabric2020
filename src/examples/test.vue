@@ -1,13 +1,15 @@
 <template>
     <div class="bigbox">
-        <div id="container" style="width: 100px; height: 100px; background: #aaaaaa; overflow: auto">
+        <GeminiScrollbar
+                class="my-scroll-bar">
             <div style="width: 500px; height: 1000px; background: red;">
                 <div>
                     我是内容
                 </div>
 
             </div>
-        </div>
+        </GeminiScrollbar>
+
         <div class="grey" style="position:relative; width: 600px; height: 600px; margin:100px auto;  overflow: scroll;"  id ="content" >
             <div class="green" id="xZhou" style="position: fixed; margin-left:18px; z-index: 2; width: 572px; overflow-x: scroll; height: 18px;">
                 <div class="x-line" :style="'width: '+width+'px;'">
@@ -159,5 +161,7 @@
     height: 100vh;
     background: #eee;
 }
+
+    .my-scroll-bar{width: 100px; height: 100px;}
 
 </style>

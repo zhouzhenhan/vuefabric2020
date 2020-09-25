@@ -1,7 +1,9 @@
 <template>
     <div>
        <!-- <vue-fabric ref="canvas" :width="width" :height="height" :boxWidth="boxWidth" :boxHeight="boxHeight" :stepLengthp="stepLength" id="can"></vue-fabric>-->
-        <Fabric-Canvas ref="canvas" :width="width" :height="height" :boxWidth="boxWidth" :boxHeight="boxHeight" :stepLengthp="stepLength" id="can"></Fabric-Canvas>
+        <Fabric-Canvas ref="canvas" :width="width" :height="height" :boxWidth="boxWidth" :boxHeight="boxHeight"
+                       :showRuler="showRuler" :stepLengthp="stepLength"
+                       id="can"></Fabric-Canvas>
     </div>
 </template>
 
@@ -12,12 +14,12 @@
         data(){
             return{
                 data: '123',
-                width:1000,      //标尺、画布的宽
+                width:1500,      //标尺、画布的宽
                 height:600,     //标尺、画布的高
                 boxWidth: 1000,  //外框宽
                 boxHeight:500,   //外框高
                 stepLength:50,  //标尺单位 每格
-
+                showRuler:[true,true] //横纵标尺是否显示
             }
         },
         mounted () {
@@ -31,7 +33,7 @@
                 id: 1,
                 width: 100,
                 height: 200,
-                left: 100,
+                left: 0,
                 top: 0,
                 padding: 0,
                 angle: 0,

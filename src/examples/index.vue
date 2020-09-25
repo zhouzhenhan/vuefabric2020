@@ -15,9 +15,9 @@
             return{
                 data: '123',
                 width:1500,      //标尺、画布的宽
-                height:600,     //标尺、画布的高
-                boxWidth: 1000,  //外框宽
-                boxHeight:500,   //外框高
+                height:1000,     //标尺、画布的高
+                boxWidth: 1200,  //外框宽
+                boxHeight:600,   //外框高
                 stepLength:50,  //标尺单位 每格
                 showRuler:[true,true] //横纵标尺是否显示
             }

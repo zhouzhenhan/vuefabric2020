@@ -1,8 +1,8 @@
 <template>
   <div class="bigbox">
    <div class="content" :style="'width: '+ boxWidth+'px;height:'+boxHeight+'px;' "  id ="content" >
-     <div class="scrollx" v-if="showRuler[1]?(height+18)>boxHeight:height>boxHeight"><i  id="scrolly" v-drag></i></div>
-     <div class="scrolly" v-if="showRuler[0]?(width+18)>boxWidth:width>boxWidth"><i  id="scrollx"  v-drag></i></div>
+     <div class="scrollx" :style="'height:'+boxHeight+'px;margin-left:'+ (boxWidth-8)+'px;'" v-if="showRuler[1]?(height+18)>boxHeight:height>boxHeight"><i  id="scrolly" v-drag></i></div>
+     <div class="scrolly" :style="'width:'+boxWidth+'px;margin-top:'+ (boxHeight-8)+'px;'" v-if="showRuler[0]?(width+18)>boxWidth:width>boxWidth"><i  id="scrollx"  v-drag></i></div>
       <div class="boxblock" v-if="showRuler[0]&&showRuler[1]"></div>
       <div class="xZhou" id="xZhou" :style="'width: '+ (boxWidth-returnXYshowcanvas(showXzhou,showYzhou))+'px; visibility:'+returnXYshow(showXzhou)+';margin-left:'+returnXYshowcanvas(showXzhou,showYzhou)+'px;'">
         <div class="x-line" :style="'width: '+ (width)+'px;transform-origin:left; transform:scaleX('+canvasZoom+');'">

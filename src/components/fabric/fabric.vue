@@ -396,9 +396,6 @@
 
     },
     methods:{
-     /* xmousemove(e){
-        console.log('移动了：',e);
-      },*/
       //标尺显示与否
       returnXYshow(b){
         if(b===true){
@@ -646,6 +643,7 @@
           visible: options.visible!==false ? true : options.visible,                          //元素是否可见
           fill: options.fillColor?options.fillColor:'#000',                                   // 填充的颜色（矩形）
           fillColor: options.fillColor?options.fillColor:'#000',                              // 填充的颜色
+
           backgroundColor: options.backgroundColor?options.backgroundColor:'rgba(0,0,0,0)',   // 边框填充的颜色
           stroke: options.bordersColor?options.bordersColor:'rgba(0,0,0,0)',                  // 边框颜色
           strokeWidth: options.bordersWidth?options.bordersWidth:0,                           // 边框宽度

@@ -67,7 +67,7 @@
                 bordersStyle:[10,4,3,4]
             });
 
-            this.$refs.canvas.setNomove();
+         //   this.$refs.canvas.setNomove();
 
             this.$refs.canvas.rename(1,'我是边框矩形');
 

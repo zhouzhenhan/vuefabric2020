@@ -8,6 +8,7 @@ import demo003 from '@/examples/ruler-test003';
 import testIndex from '@/examples/test2';
 import test3 from '@/examples/test3';
 import demoIndex from '@/examples/demo'
+import testY from '@/examples/testY'
 
 
 /*const Index = () => import('../examples/index.vue');
@@ -58,6 +59,10 @@ const router= new Router({
       path: '/demo003',
       name: 'demo003',
       component: demo003        // 调用标尺组件的测试 组件使用ruler-component 和画布结合尝试
+    },{
+      path: '/testY',
+      name: 'testY',
+      component: testY        // 调用右键组件测试 组件使用contextmenu-component 和画布结合尝试
     },
     {
       path: '/test',

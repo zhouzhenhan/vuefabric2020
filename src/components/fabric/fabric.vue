@@ -1,5 +1,5 @@
 <template>
-  <div class="bigbox" :style="'width: '+ boxWidth+'px;height:'+boxHeight+'px;' ">
+  <div class="bigbox" :style="'width: '+ boxWidth+'px;height:'+boxHeight+'px;' "  @contextmenu="showMenu">
       <div class="scrollx" :style="'height:'+boxHeight+'px;margin-left:'+ (boxWidth-8)+'px;'" v-if="showRuler[1]?(height+18)>boxHeight:height>boxHeight"><i  id="scrolly" v-drag></i></div>
       <div class="scrolly" :style="'width:'+boxWidth+'px;margin-top:'+ (boxHeight-8)+'px;'" v-if="showRuler[0]?(width+18)>boxWidth:width>boxWidth"><i  id="scrollx"  v-drag></i></div>
       <div class="boxblock" v-if="showRuler[0]&&showRuler[1]"></div>
@@ -20,7 +20,12 @@
         <div  class="yellow" :style="'width: '+(width * canvasZoom)+'px;height:'+(height * canvasZoom)+'px; '">
          <!-- <fabricbak ref="canvas" :width="width" :height="height" id="can"></fabricbak>-->
           <div class="title">{{name}}:{{width}}*{{height}} </div>
-          <canvas id="canvas" :width="width" :height="height"></canvas>
+          <canvas id="canvas" :width="width" :height="height" ></canvas>
+            <vue-context-menu :contextMenuData="contextMenuData"
+                              @savedata="savedata"
+                              @newdata="newdata"
+                              @deletea="deletea">
+            </vue-context-menu>
         </div>
       </div>
    </div>
@@ -29,13 +34,14 @@
 </template>
 
 <script>
-  import { on, off } from '../../examples/event'
-  import Utils from '../../utils/utils';
-  import initAligningGuidelines  from '../../utils/guidelines';
+  import { on, off } from '../../examples/event'   //时间监听
+  import Utils from '../../utils/utils';   //事件注册
+  import initAligningGuidelines  from '../../utils/guidelines';  //组件间对齐线
+  import vueContextMenu from '../../examples/contextmenu'   //右键菜单
 
   export default {
     name: 'FabricCanvas',
-    components:{},
+    components:{vueContextMenu},
     props: {
       width: {
         type: Number,
@@ -77,6 +83,53 @@
         showYzhou:this.showRuler[1],
         rulertop:0,
         rulerleft:0,
+
+          contextMenuData: {
+              menuName: 'demo',
+              axis: {
+                  x: null,
+                  y: null
+              },
+              menulists: [
+                  {
+                      fnHandler: 'savedata',
+                      icoName: 'fa fa-home fa-fw',
+                      btnName: '顺序',
+                      children:[
+                          {
+                              fnHandler: 'deletea',
+                              icoName: 'fa fa-home fa-fw',
+                              btnName: '上移一层'
+                          },
+                          {
+                              fnHandler: 'deletea',
+                              icoName: 'fa fa-home fa-fw',
+                              btnName: '下移一层'
+                          },
+                          {
+                              fnHandler: 'deletea',
+                              icoName: 'fa fa-home fa-fw',
+                              btnName: '置于顶层'
+                          },
+                          {
+                              fnHandler: 'deletea',
+                              icoName: 'fa fa-home fa-fw',
+                              btnName: '置于底层'
+                          }
+                      ]
+                  },
+                  {
+                      fnHandler: 'newdata',
+                      icoName: 'fa fa-home fa-fw',
+                      btnName: '复制'
+                  },
+                  {
+                      fnHandler: 'newdata',
+                      icoName: 'fa fa-home fa-fw',
+                      btnName: '删除'
+                  }
+              ]
+          }
       }
     },
     directives: {
@@ -270,11 +323,18 @@
 
       let Top = 0; //用作按住shift时,取横坐标
       let Left = 0;//用作按住shift时,取纵坐标
+        let Direction = null;
       this.canvas.controlsAboveOverlay = false;
       this.canvas.skipOffscreen = true;
       this.canvas.preserveObjectStacking = true;
       this.canvas.on('selection:created', function (options) {
+        //  console.log('selection',1);
+        //  console.log('selection',options.target);
+
         that.$emit('selection:created', options);
+          Top = options.target.top;
+          Left = options.target.left;
+
       });
       this.canvas.on('mouse:down', function (options) {
         that.$emit('mouse:down', options);
@@ -287,6 +347,8 @@
       });
       this.canvas.on('mouse:dblclick', function (options) {
         that.$emit('mouse:dblclick', options);
+
+        console.log('dblclick',options);
       });
       this.canvas.on('mouse:over', function (options) {
         that.$emit('mouse:over', options);
@@ -301,69 +363,115 @@
         that.$emit('object:removed', options);
       });
       this.canvas.on('object:moved', function (options) {
+        //  console.log('moved',3);
         that.$emit('object:moved', options);
-        //矩形 等元素边框不变形计算宽高，缩放比例为1，宽高取整
-        if(options.target.component==='component' && options.target.isType ==='Rect'){
-          options.target.set('left',  parseInt(options.target.left));
-          options.target.set('top',  parseInt(options.target.top));
-        }
+
+          Top = options.target.top;
+          Left = options.target.left;
+          Direction = null;
       });
       this.canvas.on('object:modified', function (options) {
-        console.log('modified',options.target);
+         // console.log('modified',options.target);
+         // console.log('modified',4);
         that.$emit('object:modified', options);
-        Top = options.target.top;
-        Left = options.target.left;
+            //矩形 等元素边框不变形计算宽高，缩放比例为1，宽高取整
+          if(!options.target._objects){
+              options.target.set('left',  parseInt(options.target.left));
+              options.target.set('top',  parseInt(options.target.top));
+
+              options.target.set('width',  parseInt(options.target.width * options.target.scaleX));
+              options.target.set('height',  parseInt(options.target.height * options.target.scaleY));
+              options.target.set('scaleX',  1);
+              options.target.set('scaleY',  1);
+
+              options.target.set('angle',  parseInt(options.target.angle));
+          }else{
+              options.target.set('left',  parseInt(options.target.left));
+              options.target.set('top',  parseInt(options.target.top));
+
+              options.target.set('width',  parseInt(options.target.width * options.target.scaleX));
+              options.target.set('height',  parseInt(options.target.height * options.target.scaleY));
+              options.target.set('scaleX',  1);
+              options.target.set('scaleY',  1);
+
+              options.target.set('angle',  parseInt(options.target.angle));
+          }
+          Top = options.target.top;
+          Left = options.target.left;
+          Direction = null;
+
       });
       this.canvas.on('object:rotating', function (options) {
         that.$emit('object:rotating', options);
-        //矩形 等元素边框不变形计算宽高，缩放比例为1，宽高取整
-        if(options.target.component==='component' && options.target.isType ==='Rect'){
-          options.target.set('angle',  parseInt(options.target.angle));
-        }
+
       });
       this.canvas.on('object:scaling', function (options) {
         that.$emit('object:scaling', options);
       });
       this.canvas.on('object:scaled', function (options) {
         that.$emit('object:scaled', options);
-        //矩形 等元素边框不变形计算宽高，缩放比例为1，宽高取整
-        if(options.target.component==='component' && options.target.isType ==='Rect'){
-          options.target.set('width',  parseInt(options.target.width * options.target.scaleX));
-          options.target.set('height',  parseInt(options.target.height * options.target.scaleY));
-          options.target.set('scaleX',  1);
-          options.target.set('scaleY',  1);
-        }
 
       });
       this.canvas.on('object:selected', function (options) {
-        that.$emit('object:selected', options);
-        console.log(options.target.width,options.target.height,options.target.angle,options.target.left,options.target.top);
+         //  console.log('selected',options.target);
+          that.$emit('object:selected', options);
+
       });
       this.canvas.on('object:moving', function (options) {
+        //  console.log('moving',2,Top,Left);
         that.$emit('object:moving', options);
+
         //矩形 等元素边框不变形计算宽高，缩放比例为1，宽高取整
-        if(options.target.component==='component' && options.target.isType ==='Rect'){
-          if(options.transform.shiftKey){
-            if( Math.abs(options.target.left-Left) > Math.abs(options.target.top - Top)){
-              options.target.set('top',  Top);
-            }else{
-              options.target.set('left',  Left);
-            }
+          if(!options.target._objects) {
+              if (options.transform.shiftKey) {
+                  if (Direction === 'x' || Math.abs(options.target.left - Left) > Math.abs(options.target.top - Top)) {
+                      if (Math.abs(options.target.left - Left) > 20) {
+                          Direction = 'x';
+                      }
+                      options.target.set('top', Top);
+                  } else if (Direction === 'y' || Math.abs(options.target.left - Left) < Math.abs(options.target.top - Top)) {
+                      if (Math.abs(options.target.top - Top) > 20) {
+                          Direction = 'y';
+                      }
+                      options.target.set('left', Left);
+                  }
+              }
+          }else{
+              if (options.transform.altKey) {
+                  if (Direction === 'x' || Math.abs(options.target.left - Left) > Math.abs(options.target.top - Top)) {
+                      if (Math.abs(options.target.left - Left) > 20) {
+                          Direction = 'x';
+                      }
+                      options.target.set('top', Top);
+                  } else if (Direction === 'y' || Math.abs(options.target.left - Left) < Math.abs(options.target.top - Top)) {
+                      if (Math.abs(options.target.top - Top) > 20) {
+                          Direction = 'y';
+                      }
+                      options.target.set('left', Left);
+                  }
+              }
           }
-        }
+
       });
       this.canvas.on('selection:updated', function (options) {
         that.$emit('selection:updated', options);
+
+        console.log('000   selection:updated')
       });
       this.canvas.on('selection:changed', function (options) {
         that.$emit('selection:changed', options);
+
+          console.log('111   selection:changed')
       });
       this.canvas.on('selection:cleared', function (options) {
         that.$emit('selection:cleared', options);
+
+          console.log('222  selection:cleared')
       });
       this.canvas.on('before:selection:cleared', function (options) {
         that.$emit('before:selection:cleared', options);
 
+          console.log('333  before:selection:cleared')
       });
       this.canvas.on('text:changed', function(options) {
         that.$emit('text:changed', options);
@@ -396,6 +504,38 @@
 
     },
     methods:{
+        //右键事件
+        showMenu () {
+            var canvas = this.canvas;
+
+            var x = event.clientX;
+            var y = event.clientY;
+            var objects = canvas.getObjects();
+            for (var i = objects.length - 1; i >= 0; i--) {
+                var object = objects[i];
+                if (canvas.containsPoint(event, object)) {
+                    this.setActiveObject(object);
+                    this.contextMenuData.axis = {x, y};
+                    continue;
+                }
+            }
+            event.preventDefault();
+
+        },
+        savedata () {
+            alert(1)
+        },
+        newdata () {
+            console.log('newdata!')
+        },
+        deletea(){
+            console.log('deletea!')
+        },
+        /*右键事件
+        * ----------------------------------------------------------------
+        * 标尺事件
+        * */
+
       //标尺显示与否
       returnXYshow(b){
         if(b===true){

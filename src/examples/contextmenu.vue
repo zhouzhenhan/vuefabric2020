@@ -100,7 +100,7 @@
         },
         methods: {
             fnHandler (item) {
-                console.log(item.fnHandler);
+               // console.log(item.fnHandler);
                 this.$emit(item.fnHandler)
             }
         }
@@ -128,6 +128,11 @@
         text-decoration: none;
         list-style: none;
         margin: 3px 0;
+        -moz-user-select:none; /*火狐*/
+        -webkit-user-select:none; /*webkit浏览器*/
+        -ms-user-select:none; /*IE10*/
+        -khtml-user-select:none; /*早期浏览器*/
+        user-select:none;
     }
     .context-menu-list:hover {
         background: #EDF2F6;

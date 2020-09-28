@@ -24,7 +24,9 @@
             <vue-context-menu :contextMenuData="contextMenuData"
                               @savedata="savedata"
                               @newdata="newdata"
-                              @deletea="deletea">
+                              @deletea="deletea"
+                                @toTopLayer="toTopLayer" @toLastLayer="toLastLayer" @toNextLayer="toNextLayer" @toBottomLayer="toBottomLayer"
+                                @removecurrentObj="removecurrentObj" >
             </vue-context-menu>
         </div>
       </div>
@@ -97,22 +99,22 @@
                       btnName: '顺序',
                       children:[
                           {
-                              fnHandler: 'deletea',
+                              fnHandler: 'toLastLayer',
                               icoName: 'fa fa-home fa-fw',
                               btnName: '上移一层'
                           },
                           {
-                              fnHandler: 'deletea',
+                              fnHandler: 'toNextLayer',
                               icoName: 'fa fa-home fa-fw',
                               btnName: '下移一层'
                           },
                           {
-                              fnHandler: 'deletea',
+                              fnHandler: 'toTopLayer',
                               icoName: 'fa fa-home fa-fw',
                               btnName: '置于顶层'
                           },
                           {
-                              fnHandler: 'deletea',
+                              fnHandler: 'toBottomLayer',
                               icoName: 'fa fa-home fa-fw',
                               btnName: '置于底层'
                           }
@@ -124,7 +126,7 @@
                       btnName: '复制'
                   },
                   {
-                      fnHandler: 'newdata',
+                      fnHandler: 'removecurrentObj',
                       icoName: 'fa fa-home fa-fw',
                       btnName: '删除'
                   }
@@ -614,6 +616,11 @@
         return array;
 
       },
+      /*
+      * 标尺函数
+      * ------------------------------------------------------------
+      * 画布函数
+      * */
 
 
       //元素不选中即置顶
@@ -651,7 +658,7 @@
         this.canvas.renderAll();
       },
 
-      //删除当前活跃元素
+      //删除当前活跃元素 - 右键菜单调用该方法
       removecurrentObj(){
         let obj = this.canvas.getActiveObject();
         this.canvas.remove(obj);
@@ -760,6 +767,48 @@
           }
         }
       },
+        // 设置层级(对焦点活跃元素才可操作) - 右键菜单中调用了这几个方法
+        //下移一层
+        toNextLayer () {
+            let obj = this.canvas.getActiveObject();
+            if (!obj) {
+                return;
+            }
+            obj.sendBackwards(true);
+            this.canvas.renderTop();
+            this.canvas.renderAll();
+        },
+        //置于底层
+        toBottomLayer () {
+            let obj = this.canvas.getActiveObject();
+            if (!obj) {
+                return;
+            }
+            obj.sendToBack();
+            this.canvas.renderTop();
+            this.canvas.renderAll();
+        },
+        //上移一层
+        toLastLayer () {
+            let obj = this.canvas.getActiveObject();
+            if (!obj) {
+                return;
+            }
+            obj.bringForward(true);
+            this.canvas.renderTop();
+            this.canvas.renderAll();
+        },
+        //置于顶层
+        toTopLayer () {
+            let obj = this.canvas.getActiveObject();
+            if (!obj) {
+                return;
+            }
+            obj.bringToFront();
+            this.canvas.renderTop();
+            this.canvas.renderAll();
+        },
+
 
 
 

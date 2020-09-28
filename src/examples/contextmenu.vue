@@ -115,9 +115,12 @@
         top: 0;
         left: 0;
         border-radius: 2px;
-        box-shadow: 0 2px 2px 0 #cccccc;
-        font-family: 'Courier New', Courier, monospace;
-        font-size: 12px;
+        box-shadow: 0px 9px 28px 8px rgba(0, 0, 0, 0.05), 0px 6px 16px 0px rgba(0, 0, 0, 0.08), 0px 3px 6px -4px rgba(0, 0, 0, 0.12);
+        font-family:PingFangSC-Regular, PingFang SC, 'Courier New', Courier, monospace;
+        font-weight: 400;
+        font-size: 14px;
+        color: rgba(0, 0, 0, 0.65);
+        line-height: 22px;
     }
     .vue-contextmenu-listWrapper .context-menu-list {
         position: relative;
@@ -127,9 +130,9 @@
         margin: 3px 0;
     }
     .context-menu-list:hover {
-        background: #0062B2;
+        background: #EDF2F6;
     }
-    .context-menu-list .no-child-btn:hover {
+    /*.context-menu-list .no-child-btn:hover {
         background: #0062B2;
         color:#fff;
     }
@@ -138,7 +141,7 @@
     }
     .context-menu-list .has-child:hover .hoverbicon{
         border-left: 8px solid #ffffff;
-    }
+    }*/
     .context-menu-list .has-child {
         position: relative;
         cursor: pointer;

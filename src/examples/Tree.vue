@@ -74,14 +74,14 @@
         position: absolute;
         display: none;
         border: 1px solid #e8e8e8;
+        box-shadow: 0px 9px 28px 8px rgba(0, 0, 0, 0.05), 0px 6px 16px 0px rgba(0, 0, 0, 0.08), 0px 3px 6px -4px rgba(0, 0, 0, 0.12);
         border-radius: 3px;
     }
     .child-li-wrapper:hover > .has-child > .child-ul-wrapper{
         display: block;
     }
     .context-menu-list:hover, .child-li-wrapper:hover {
-        background: #0062B2;
-        color:#fff;
+        background:#EDF2F6;   /*// #0062B2;*/
     }
     .nav-icon-fontawe {
         position: absolute;
@@ -93,7 +93,10 @@
     }
     .btn-wrapper-simple {
         position: relative;
-        height: 16px;
-        line-height: 16px;
+        height: 22px;
+        font-family: PingFangSC-Regular, PingFang SC, 'Courier New', Courier, monospace;
+        font-weight: 400;
+        color: rgba(0, 0, 0, 0.65);
+        line-height: 22px;
     }
 </style>

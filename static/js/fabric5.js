@@ -9446,7 +9446,7 @@ fabric.PatternBrush = fabric.util.createClass(fabric.PencilBrush, /** @lends fab
          * @type Boolean
          * @default
          */
-        centeredRotation:       false,
+        centeredRotation:       false,  //是否中心旋转
 
         /**
          * Indicates which key enable centered Transform
@@ -9515,7 +9515,7 @@ fabric.PatternBrush = fabric.util.createClass(fabric.PencilBrush, /** @lends fab
          * @type String
          * @default
          */
-        selectionColor:        'rgba(0,0,0,0.3)' , // blue  'rgba(100, 100, 255, 0.3)'
+        selectionColor:        'rgba(0,0,0,0.1)' , // blue  'rgba(100, 100, 255, 0.3)'
 
         /**
          * Default dash array pattern
@@ -9529,7 +9529,7 @@ fabric.PatternBrush = fabric.util.createClass(fabric.PencilBrush, /** @lends fab
          * @type String
          * @default
          */
-        selectionBorderColor:   'rgba(0, 0, 0, 0.8)',
+        selectionBorderColor:   'rgba(0, 0, 0, 0.4)',
 
         /**
          * Width of a line used in object/group selection
@@ -13034,7 +13034,7 @@ fabric.util.object.extend(fabric.StaticCanvas.prototype, /** @lends fabric.Stati
          * @type Number
          * @default
          */
-        cornerSize:               13,
+        cornerSize:               10,
 
         /**
          * When true, object's controlling corners are rendered as transparent inside (i.e. stroke instead of fill)
@@ -13062,28 +13062,28 @@ fabric.util.object.extend(fabric.StaticCanvas.prototype, /** @lends fabric.Stati
          * @type Number
          * @default
          */
-        padding:                  20 ,  //happy change test 0
+        padding:                  0 ,  //happy change test 0
 
         /**
          * Color of controlling borders of an object (when it's active)
          * @type String
          * @default
          */
-        borderColor:              'rgba(102,153,255,0.75)',
+        borderColor:             '#999',  //happy change bordercolor rgba(102,153,255,0.25) 'rgba(102,153,255,0.75)',
 
         /**
          * Array specifying dash pattern of an object's borders (hasBorder must be true)
          * @since 1.6.2
          * @type Array
          */
-        borderDashArray:          null,
+        borderDashArray:          [8,2],  //happy change  默认 null
 
         /**
          * Color of controlling corners of an object (when it's active)
          * @type String
          * @default
          */
-        cornerColor:              'rgba(102,153,255,0.5)',
+        cornerColor:         '#999',     // happy change  默认 'rgba(102,153,255,0.5)',
 
         /**
          * Color of controlling corners of an object (when it's active and transparentCorners false)
@@ -13091,7 +13091,7 @@ fabric.util.object.extend(fabric.StaticCanvas.prototype, /** @lends fabric.Stati
          * @type String
          * @default
          */
-        cornerStrokeColor:        null,
+        cornerStrokeColor:      '#999',     //  happy change  默认 null,
 
         /**
          * Specify style of control, 'rect' or 'circle'
@@ -13125,7 +13125,7 @@ fabric.util.object.extend(fabric.StaticCanvas.prototype, /** @lends fabric.Stati
          * @type Boolean
          * @default
          */
-        centeredRotation:         true,
+        centeredRotation:         false,   //false 左上角旋转   默认true 中心旋转
 
         /**
          * Color of object's fill
@@ -13304,7 +13304,7 @@ fabric.util.object.extend(fabric.StaticCanvas.prototype, /** @lends fabric.Stati
          * @type Number
          * @default
          */
-        rotatingPointOffset:      40,
+        rotatingPointOffset:     30,
 
         /**
          * When set to `true`, objects are "found" on canvas on per-pixel basis rather than according to bounding box
@@ -13391,7 +13391,7 @@ fabric.util.object.extend(fabric.StaticCanvas.prototype, /** @lends fabric.Stati
          * @type Boolean
          * @default
          */
-        lockScalingFlip:          false,
+        lockScalingFlip:          true,   //happy change true 禁止翻转  默认是false
 
         /**
          * When `true`, object is not exported in OBJECT/JSON
@@ -13753,6 +13753,11 @@ fabric.util.object.extend(fabric.StaticCanvas.prototype, /** @lends fabric.Stati
                     transformMatrix:          this.transformMatrix ? this.transformMatrix.concat() : null,
                     skewX:                    toFixed(this.skewX, NUM_FRACTION_DIGITS),
                     skewY:                    toFixed(this.skewY, NUM_FRACTION_DIGITS),
+                    id:                       this.id,   //happy change add id to copydata
+                    name:                     this.name,
+                    component:                this.component,
+                    isType:                   this.isType,
+                    isDiff:                   this.isDiff,
                 };
 
             if (this.clipPath) {

@@ -18,7 +18,7 @@
                 width:1500,      //标尺、画布的宽
                 height:1000,     //标尺、画布的高
                 boxWidth: 1200,  //外框宽
-                boxHeight:500,   //外框高
+                boxHeight:800,   //外框高
                 stepLength:50,  //标尺单位 每格
                 showRuler:[true,true] //横纵标尺是否显示
             }
@@ -43,10 +43,10 @@
                 top: 0,
                 padding: 0,
                 angle: 0,
-                fillColor:'#eee',
-                bordersColor: '#f00',
-                bordersWidth: 1,
-                bordersStyle: [0,0],
+                fill:'#eee',
+                stroke: '#f00',
+                strokeWidth: 1,
+                strokeDashArray: [0,0],
                 scaleX:1,
                 scaleY:1,
                 rx: 0,
@@ -61,10 +61,10 @@
                 height: 100,
                 left: 200,
                 top: 200,
-                fillColor:'#eee',
-                bordersColor: '#f00',
-                bordersWidth:3 ,
-                bordersStyle:[10,4,3,4]
+                fill:'#eee',
+                stroke: '#f00',
+                strokeWidth:3 ,
+                strokeDashArray:[10,4,3,4]
             });
 
          //   this.$refs.canvas.setNomove();

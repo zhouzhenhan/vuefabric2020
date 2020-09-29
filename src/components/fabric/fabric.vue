@@ -20,13 +20,15 @@
         <div  class="yellow" :style="'width: '+(width * canvasZoom)+'px;height:'+(height * canvasZoom)+'px; '">
          <!-- <fabricbak ref="canvas" :width="width" :height="height" id="can"></fabricbak>-->
           <div class="title">{{name}}:{{width}}*{{height}} </div>
+            <input type="text" id="code" style="position:fixed; top:-100px; z-index:9999;"><!--style="visibility: hidden;"-->
+            <div style="position:fixed; top:-100px; z-index:9999;visibility: hidden;">{{clipboard}}</div>
           <canvas id="canvas" :width="width" :height="height" ></canvas>
             <vue-context-menu :contextMenuData="contextMenuData"
                               @savedata="savedata"
                               @newdata="newdata"
                               @deletea="deletea"
                                 @toTopLayer="toTopLayer" @toLastLayer="toLastLayer" @toNextLayer="toNextLayer" @toBottomLayer="toBottomLayer"
-                                @removecurrentObj="removecurrentObj" >
+                                @removeEditObj="removeEditObj" >
             </vue-context-menu>
         </div>
       </div>
@@ -75,6 +77,7 @@
         name:'canvas',
         canvas:null,
         canvasZoom:1,
+          clipboard:'',
 
         xScale:[],
         yScale:[],
@@ -86,7 +89,7 @@
         rulertop:0,
         rulerleft:0,
 
-          contextMenuData: {
+        contextMenuData: {
               menuName: 'demo',
               axis: {
                   x: null,
@@ -126,7 +129,7 @@
                       btnName: '复制'
                   },
                   {
-                      fnHandler: 'removecurrentObj',
+                      fnHandler: 'removeEditObj',
                       icoName: 'fa fa-home fa-fw',
                       btnName: '删除'
                   }
@@ -254,11 +257,48 @@
       let keyCode = null;
       document.onkeydown = function(e) {
         console.log('keyCode:',window.event.keyCode);
-        if(event.shiftKey && window.event.keyCode===107){
+        let keyCode = window.event.keyCode;
+        if(event.shiftKey && window.event.keyCode===107){                                                               //shift + '+'
           that.ChangeZoom(1)
-        }else if(event.shiftKey && window.event.keyCode===109){
+        }else if(event.shiftKey && window.event.keyCode===109){                                                         //sheft + '-'
           that.ChangeZoom(0)
         }
+
+        if(keyCode===46){                                                                                               //Delete
+            let deleteIDS = that.removeCurrentObj();
+            //console.log(deleteIDS);
+        }
+        if(keyCode===37){                                                                                               // ←
+            that.getEditObj().left = parseInt(that.getEditObj().left - 1);
+            that.getEditObj().setCoords();
+            that.canvas.requestRenderAll();
+            that.canvas.renderAll();
+        }
+          if(keyCode===38){                                                                                             // ↑
+              that.getEditObj().top = parseInt(that.getEditObj().top - 1);
+              that.getEditObj().setCoords();
+              that.canvas.requestRenderAll();
+              that.canvas.renderAll();
+          }
+          if(keyCode===39){                                                                                             // →
+              that.getEditObj().left = parseInt(that.getEditObj().left + 1);
+              that.getEditObj().setCoords();
+              that.canvas.requestRenderAll();
+              that.canvas.renderAll();
+          }
+          if(keyCode===40){                                                                                             // ↓
+              that.getEditObj().top = parseInt(that.getEditObj().top + 1);
+              that.getEditObj().setCoords();
+              that.canvas.requestRenderAll();
+              that.canvas.renderAll();
+          }
+          if(event.ctrlKey && keyCode === 67){                                                                          // ctrl + 67
+            that.copy();
+          }
+          if(event.ctrlKey && keyCode === 67){                                                                          // ctrl + 86
+
+          }
+
       };
 
       document.onkeyup = function(e) {
@@ -266,7 +306,22 @@
         keyCode = null*/
       };
 
-      this.scaleCalc();
+
+
+        document.addEventListener('paste', function (event) {
+            var text = event.clipboardData.getData('Text');
+            //console.log(text.substring(0,7));
+            if(text.substring(0,7)!=='#ZKONG#'){
+                return;
+            }
+            let clonedata = JSON.parse(unescape(text.substring(7,text.length)));
+            //console.warn('剪切板内容还原',clonedata);
+            that.clipboard = clonedata;
+            that.paste(clonedata);
+            event.clipboardData.setData('Text','');
+        });
+
+      this.scaleCalc();    //标尺计算
 
 
       this.canvas = new fabric.Canvas('canvas', { preserveObjectStacking: true });
@@ -373,21 +428,9 @@
           Direction = null;
       });
       this.canvas.on('object:modified', function (options) {
-         // console.log('modified',options.target);
-         // console.log('modified',4);
         that.$emit('object:modified', options);
             //矩形 等元素边框不变形计算宽高，缩放比例为1，宽高取整
           if(!options.target._objects){
-              options.target.set('left',  parseInt(options.target.left));
-              options.target.set('top',  parseInt(options.target.top));
-
-              options.target.set('width',  parseInt(options.target.width * options.target.scaleX));
-              options.target.set('height',  parseInt(options.target.height * options.target.scaleY));
-              options.target.set('scaleX',  1);
-              options.target.set('scaleY',  1);
-
-              options.target.set('angle',  parseInt(options.target.angle));
-          }else{
               options.target.set('left',  parseInt(options.target.left));
               options.target.set('top',  parseInt(options.target.top));
 
@@ -412,6 +455,20 @@
       });
       this.canvas.on('object:scaled', function (options) {
         that.$emit('object:scaled', options);
+        if(options.target._objects){
+            //以下为了放大缩小时边框不变形
+            let ids = [];
+            let _objects = options.target._objects;
+            that.discardActive();
+            _objects.forEach((_obj)=>{
+                ids.push(_obj.id);
+                _obj.set('width',  parseInt(_obj.width * _obj.scaleX));
+                _obj.set('height',  parseInt(_obj.height * _obj.scaleY));
+                _obj.set('scaleX',  1);
+                _obj.set('scaleY',  1);
+            });
+            that.setActiveObjs(ids);
+        }
 
       });
       this.canvas.on('object:selected', function (options) {
@@ -515,6 +572,7 @@
             var objects = canvas.getObjects();
             for (var i = objects.length - 1; i >= 0; i--) {
                 var object = objects[i];
+                console.log(canvas.containsPoint(event, object));
                 if (canvas.containsPoint(event, object)) {
                     this.setActiveObject(object);
                     this.contextMenuData.axis = {x, y};
@@ -642,24 +700,54 @@
         this.canvas.setActiveObject(obj);
         this.canvas.renderAll();
       },
+      //设置多个元素为活跃元素  --- id的集合
+      setActiveObjs(ids){
+          let objs = [];
+          ids.forEach((id)=>{
+              let objects = this.canvas.getObjects();
+              objects.forEach((obj)=>{
+                  if(obj.id===id){
+                      objs.push(obj);
+                  }
+              })
+          });
+          var sel = new fabric.ActiveSelection(objs, {
+              canvas: this.canvas,
+          });
+          this.canvas.setActiveObject(sel);
+          this.canvas.requestRenderAll();
+          this.canvas.renderAll();
+      },
+        //设置多个元素为活跃元素  --- objects对象集合
+        setActiveObjects(objs){
+            var sel = new fabric.ActiveSelection(objs, {
+                canvas: this.canvas,
+            });
+            this.canvas.setActiveObject(sel);
+            this.canvas.requestRenderAll();
+            this.canvas.renderAll();
+        },
 
-      //单个删除 多个删除 不支持组合删除
+      //单个删除 多个删除 不支持组合删除 ----delete快捷键 删除的
       removeCurrentObj () {
         let obj = this.canvas.getActiveObject();
-        // console.log(obj._objects);
+        let deleteIds = [];
         if(obj._objects){
           this.canvas.discardActiveObject();
           for(var i in obj._objects){
+            deleteIds.push(obj._objects[i].id);
             this.canvas.remove(obj._objects[i]);
           }
         }else{
+          deleteIds.push(obj.id);
           this.canvas.remove(obj);
         }
         this.canvas.renderAll();
+        return deleteIds;
       },
 
       //删除当前活跃元素 - 右键菜单调用该方法
-      removecurrentObj(){
+      removeEditObj(){
         let obj = this.canvas.getActiveObject();
         this.canvas.remove(obj);
       },
@@ -704,10 +792,10 @@
         this.canvas.renderAll();
       },
 
-      //取消所有活跃元素的选择
+      //取消所有活跃元素的选择 ---取消选择 （单个或多个）
       discardActive () {
         this.canvas.discardActiveObject();
-        this.canvas.discardActiveGroup();
+        this.canvas.requestRenderAll();
         this.canvas.renderAll();
       },
       //层级移动
@@ -808,19 +896,96 @@
             this.canvas.renderTop();
             this.canvas.renderAll();
         },
+        //复制
+        copy(){
+            let clipboard =  this.canvas.getActiveObject();
+            //console.log(JSON.stringify(clipboard));
+            if(!clipboard._objects){
+                document.getElementById('code').value = '#ZKONG#'+ escape(JSON.stringify(clipboard));
+                document.getElementById('code').select();
+                document.execCommand('copy');
+                document.getElementById('code').value = '';
+            }else{
+                let _objects = JSON.parse(JSON.stringify(clipboard._objects));
+                _objects.forEach((_obj)=>{
+                    _obj.top =  clipboard.top + _obj.top;
+                    _obj.left =  clipboard.left + _obj.left;
+                });
+                document.getElementById('code').value = '#ZKONG#'+ escape(JSON.stringify(_objects));
+                document.getElementById('code').select();
+                document.execCommand('copy');
+                document.getElementById('code').value = '';
+            }
+
+        },
+        //粘贴
+        paste(_clipboard){
+          //  console.log(_clipboard);
+            this.canvas.discardActiveObject();
+          //  console.log('判断依据：',_clipboard instanceof Array);
+
+            if(_clipboard instanceof Array){
+                let canvaobjs = [];
+                _clipboard.forEach((object)=>{
+                    object.top = object.top+10;
+                    object.left = object.left+10;
+                    let canvaobj = this.addObject(object);
+                    canvaobjs.push(canvaobj);
+                });
+                //console.log(canvaobjs);
+                var sel = new fabric.ActiveSelection(canvaobjs, {
+                    canvas: this.canvas,
+                });
+                this.canvas.setActiveObject(sel);
+            }else{
+                let canvaobj;
+                _clipboard.top = _clipboard.top+10;
+                _clipboard.left = _clipboard.left+10;
+               // console.log(JSON.stringify(_clipboard));
+                canvaobj =  this.addObject(_clipboard);
+                this.canvas.setActiveObject(canvaobj);
+            }
+            //this.clipboard = null;
+            this.canvas.requestRenderAll();
+        },
+        addObject(obj){
+          switch(obj.isType){
+              case 'Rect':
+                  return this.createRect(obj);
+                  break;
+              case 'Text':
+                  break;
+
+          }
+        },
+
 
 
 
 
       /**
+       borderDashArray:[8,2],                            //  水印框虚线边
+       borderColor: '#999',                              //  描边颜色
+       cornerColor: '#999',                              //  边角颜色
+       cornerStrokeColor: '#999',                        //  边角描边颜色
+       cornerFillColor: '#eee',                          //  边角描边颜色
+       centeredRotation:false,                           //  旋转中心默认左上角
+       lockScalingFlip: true,                            // 禁止缩放时翻转
+       rotatingPointOffset: 20,                          // 旋转位置
+       selectionColor:        'rgba(0,0,0,0.1)' ,        // 拖拽选择框样式
+       selectionBorderColor:   'rgba(0, 0, 0, 0.4)',     // 拖拽选择框样式修改
+       * */
+
+      /**
        * 创建矩形、 圆角矩形 、平行四边形
        * @options {
        *     id, width, height, left, top, padding, angle, scaleX,  scaleY, selectable, visible,   与原数据同名
-       *     fillColor，backgroundColor, bordersColor, bordersWidth, bordersStyle,           原数据名改造
+       *     fillColor，backgroundColor, stroke, strokeWidth, strokeDashArray,           原数据名改造
        *     rx, ry, skewX,    影响圆角和形状
        * }
        * */
       createRect (options) {
+       //   console.log('create rect',JSON.stringify(options));
         options = Object.assign({ width: 50, height: 30, left: 50, top: 50,  padding: 0, angle: 0, scaleX: 1,  scaleY: 1, }, options);
         let rect = new fabric.Rect({
           ...options,
@@ -830,28 +995,24 @@
           isDiff: 'static',
           selectable: options.selectable!==false ? true : options.selectable,                 //元素是否可选中
           visible: options.visible!==false ? true : options.visible,                          //元素是否可见
-          fill: options.fillColor?options.fillColor:'#000',                                   // 填充的颜色（矩形）
+          fill: options.fill?options.fill:'#000',                                   // 填充的颜色（矩形）
           fillColor: options.fillColor?options.fillColor:'#000',                              // 填充的颜色
 
           backgroundColor: options.backgroundColor?options.backgroundColor:'rgba(0,0,0,0)',   // 边框填充的颜色
-          stroke: options.bordersColor?options.bordersColor:'rgba(0,0,0,0)',                  // 边框颜色
-          strokeWidth: options.bordersWidth?options.bordersWidth:0,                           // 边框宽度
-          strokeDashArray:options.bordersStyle?options.bordersStyle:[0,0],                    // 边框样式 虚线 [5,1]     直线[0,0]
+          stroke: options.stroke?options.stroke:'rgba(0,0,0,0)',                  // 边框颜色
+          strokeWidth: options.strokeWidth?options.strokeWidth:0,                           // 边框宽度
+          strokeDashArray:options.strokeDashArray?options.strokeDashArray:[0,0],                    // 边框样式 虚线 [5,1]     直线[0,0]
 
-          borderDashArray:[8,2],                            //  水印框虚线边
-          borderColor: '#999',                              //  描边颜色
-          cornerColor: '#999',                              //  边角颜色
-          cornerStrokeColor: '#999',                        //  边角描边颜色
-          cornerFillColor: '#eee',                          //  边角描边颜色
           minScaleLimit: 0.0001,                            //  最小限制
-          lockScalingFlip: true,                            // 禁止缩放时翻转
+
           flipX: false,
           flipY: false,
           originX: 'left',
           originY: 'top',
-          centeredRotation:false,                           //默认选中左上角
+
           stopContextMenu: true,                            //禁掉鼠标右键默认事件
         });
+        rect.setCoords();
         this.canvas.add(rect);
         this.canvas.renderAll();
         return rect;

@@ -24,11 +24,8 @@
             <div style="position:fixed; top:-100px; z-index:9999;visibility: hidden;">{{clipboard}}</div>
           <canvas id="canvas" :width="width" :height="height" ></canvas>
             <vue-context-menu :contextMenuData="contextMenuData"
-                              @savedata="savedata"
-                              @newdata="newdata"
-                              @deletea="deletea"
                                 @toTopLayer="toTopLayer" @toLastLayer="toLastLayer" @toNextLayer="toNextLayer" @toBottomLayer="toBottomLayer"
-                                @removeEditObj="removeEditObj" >
+                                @removeEditObj="removeEditObj" @copypaste="copypaste">
             </vue-context-menu>
         </div>
       </div>
@@ -97,7 +94,7 @@
               },
               menulists: [
                   {
-                      fnHandler: 'savedata',
+                      fnHandler: '',
                       icoName: 'fa fa-home fa-fw',
                       btnName: '顺序',
                       children:[
@@ -124,7 +121,7 @@
                       ]
                   },
                   {
-                      fnHandler: 'newdata',
+                      fnHandler: 'copypaste',
                       icoName: 'fa fa-home fa-fw',
                       btnName: '复制'
                   },
@@ -292,11 +289,19 @@
               that.canvas.requestRenderAll();
               that.canvas.renderAll();
           }
-          if(event.ctrlKey && keyCode === 67){                                                                          // ctrl + 67
-            that.copy();
+          if(event.ctrlKey && keyCode === 67){                                                                          // ctrl + C
+              let copydata = that.copyData()
+              document.getElementById('code').value = copydata;
+              that.clipboard = copydata; //用来限制每个画布复制一次
+              document.getElementById('code').select();
+              document.execCommand('copy');
+              document.getElementById('code').value = '';
           }
-          if(event.ctrlKey && keyCode === 67){                                                                          // ctrl + 86
+          if(event.ctrlKey && keyCode === 86){                                                                          // ctrl + V
 
+          }
+          if(event.shiftKey && keyCode === 68){                                                                          // Shift + D
+              that.copypaste();
           }
 
       };
@@ -310,15 +315,9 @@
 
         document.addEventListener('paste', function (event) {
             var text = event.clipboardData.getData('Text');
-            //console.log(text.substring(0,7));
-            if(text.substring(0,7)!=='#ZKONG#'){
-                return;
-            }
-            let clonedata = JSON.parse(unescape(text.substring(7,text.length)));
-            //console.warn('剪切板内容还原',clonedata);
-            that.clipboard = clonedata;
-            that.paste(clonedata);
+            that.paste(text);
             event.clipboardData.setData('Text','');
+            event.clipboardData.clearData('Text');
         });
 
       this.scaleCalc();    //标尺计算
@@ -570,6 +569,9 @@
             var x = event.clientX;
             var y = event.clientY;
             var objects = canvas.getObjects();
+            objects.sort(function (a,b) {
+                return a.zIndex - b.zIndex;
+            });
             for (var i = objects.length - 1; i >= 0; i--) {
                 var object = objects[i];
                 console.log(canvas.containsPoint(event, object));
@@ -581,15 +583,6 @@
             }
             event.preventDefault();
 
-        },
-        savedata () {
-            alert(1)
-        },
-        newdata () {
-            console.log('newdata!')
-        },
-        deletea(){
-            console.log('deletea!')
         },
         /*右键事件
         * ----------------------------------------------------------------
@@ -897,33 +890,32 @@
             this.canvas.renderAll();
         },
         //复制
-        copy(){
+        copyData(){
             let clipboard =  this.canvas.getActiveObject();
-            //console.log(JSON.stringify(clipboard));
+            if(clipboard==undefined || clipboard==null){
+                return;
+            }
             if(!clipboard._objects){
-                document.getElementById('code').value = '#ZKONG#'+ escape(JSON.stringify(clipboard));
-                document.getElementById('code').select();
-                document.execCommand('copy');
-                document.getElementById('code').value = '';
+                return '#ZKONG#'+ escape(JSON.stringify(clipboard));
             }else{
                 let _objects = JSON.parse(JSON.stringify(clipboard._objects));
                 _objects.forEach((_obj)=>{
                     _obj.top =  clipboard.top + _obj.top;
                     _obj.left =  clipboard.left + _obj.left;
                 });
-                document.getElementById('code').value = '#ZKONG#'+ escape(JSON.stringify(_objects));
-                document.getElementById('code').select();
-                document.execCommand('copy');
-                document.getElementById('code').value = '';
+                return '#ZKONG#'+ escape(JSON.stringify(_objects));
             }
-
         },
         //粘贴
-        paste(_clipboard){
-          //  console.log(_clipboard);
+        paste(text){
+            if(this.clipboard==null){ //剪切板清除不掉，所以画布只可粘贴一次限制
+                return;
+            }
             this.canvas.discardActiveObject();
-          //  console.log('判断依据：',_clipboard instanceof Array);
-
+            if(text.substring(0,7)!=='#ZKONG#'){
+                return;
+            }
+            let _clipboard = JSON.parse(unescape(text.substring(7,text.length)));
             if(_clipboard instanceof Array){
                 let canvaobjs = [];
                 _clipboard.forEach((object)=>{
@@ -932,7 +924,6 @@
                     let canvaobj = this.addObject(object);
                     canvaobjs.push(canvaobj);
                 });
-                //console.log(canvaobjs);
                 var sel = new fabric.ActiveSelection(canvaobjs, {
                     canvas: this.canvas,
                 });
@@ -941,13 +932,19 @@
                 let canvaobj;
                 _clipboard.top = _clipboard.top+10;
                 _clipboard.left = _clipboard.left+10;
-               // console.log(JSON.stringify(_clipboard));
                 canvaobj =  this.addObject(_clipboard);
                 this.canvas.setActiveObject(canvaobj);
             }
-            //this.clipboard = null;
+            this.clipboard = null;
             this.canvas.requestRenderAll();
         },
+        //复制粘贴操作（不用剪切板）
+        copypaste(){
+            let copydata = this.copyData();
+            this.clipboard = copydata; //仅本画布复制保存
+            this.paste(copydata);
+        },
+        //根据数据创建组件
         addObject(obj){
           switch(obj.isType){
               case 'Rect':

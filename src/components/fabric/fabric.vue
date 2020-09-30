@@ -67,7 +67,12 @@
       showRuler:{
         type:Array,
         default: () => [true,true],
-      }
+      },
+        idno:{
+          type:Number,
+          default:1,
+          required: true
+        }
     },
     data(){
       return{
@@ -75,6 +80,7 @@
         canvas:null,
         canvasZoom:1,
           clipboard:'',
+          cid:1,
 
         xScale:[],
         yScale:[],
@@ -231,6 +237,12 @@
         }
       }
     },
+      watch:{
+          idno(val, oldVal){
+              console.log('val',val,'old,',oldVal);
+              this.cid =val;
+          }
+      },
     mounted() {
         window.onresize = (() => {
             this.rulertop =  window.pageYOffset ;
@@ -328,6 +340,9 @@
       //console.log(canvas);
 
       fabric.Canvas.prototype.rotationCursor = "url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABsAAAAbCAYAAACN1PRVAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyFpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNS1jMDE0IDc5LjE1MTQ4MSwgMjAxMy8wMy8xMy0xMjowOToxNSAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIChXaW5kb3dzKSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDo5NzBBQTBGQ0Y4ODcxMUVBQURGNkU5NzQ3OUY4RTA5NiIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDo5NzBBQTBGREY4ODcxMUVBQURGNkU5NzQ3OUY4RTA5NiI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOjk3MEFBMEZBRjg4NzExRUFBREY2RTk3NDc5RjhFMDk2IiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjk3MEFBMEZCRjg4NzExRUFBREY2RTk3NDc5RjhFMDk2Ii8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+QUJwRwAAAytJREFUeNrsVk1oGkEUXqVIqCRIhVICEsSTkFuwEPDaWiQ9NaQx6VGRaqCHQATBEFMKKUoLos0h4LV4aWxCbyqhEbx4CJJCwJMJRKVWxJ/EkJ/X9yabZd2oay+hhX7wsbPz3sybmTfv21UAAHdXUHJ3iL8rmEKh0CHdyASyhAQRC8gQ0izyNyCD9Lw1GeWsFxFvdDoduN1uSCQSUCqVQIxCoQChUAjMZjM5B5DTw8PDEAwG6f3Trfl6BFEgQzMzM3BwcAByaDabYLPZYHR0FJLJJOu73sdgwd65XC44Pz8XJjw+PoZYLAZ+vx+8Xi/b6enpqWBvtVqwu7vL2u12myZpywZDOCcnJ6FarbKBV1dXEI1GwWg0gkqlIgc/0qtWq2FiYgI2NjagVqt17LRer5NfvW8wxH0E7O3tCQMXFxfJEEWakCqRrxr5lBaQyWQ6gjUaDXJoyAV7gYDLy0s2iJJPiaZFdDmBRyMjI7C5udk1h2hvygX7jGADTk5OgG4i9hlFditym6ef8tcL3S7IPUklPEawRjqd5orFIjXzfP08M5lM35aXl5l9dXV1amtri8tms5xU8s7Ozuix3rfOEL8QbGWBQIDVjsj2FSGsnNrUh3yOnJLwSbdbLt3ZT8QDxM2uiiIbXR7xC8fncpvf+cOhoaGywWDgsNjpfRxtP/rJVZEPwlFAeohs67hbLpVKMVJbclSvPR4Pt7+/z62trbF3uWP8gmDHdHh4CBqNhjo1Ivs0MslzWtSvo8uEC2VjMd/UmZa7ja8QcHFxwQYtLS1R50cZ/SRpC66srAj59Pl8ZPANoiDfEYLszM3NUecHpFbiRykYR0ZI2kiuCEdHR6DX68lBP0gwm8ViYZJDIP1bWFgArVZ7o+x2pEupVMLY2BhEIhEmaQQSg/n5efLzdj2FHkfzfnZ2FiqVinA0+XyelYPdbgfaCWliuVzuUA2n00mDwz2PvE8u3mKBQzwel/3E7OzsAJ2GuC7/KBgf0IKMW61WCIfDkMvlmMiiQrCvApYAOBwO9tVGv5f95pINJtHEMDJHak6KhKwiU0gH3chB5lH8/5X754L9FmAAxKqp09gZRrsAAAAASUVORK5CYII=) 12 12, auto";
+      fabric.Object.prototype.originX = 'center';  //设置中心为左上角
+      fabric.Object.prototype.originY = 'center';   //设置中心为左上角
+
       canvas.backgroundColor = '#ffffff';
       canvas.selection = true;
       fabric.Canvas.prototype.customiseControls({
@@ -569,19 +584,17 @@
             var x = event.clientX;
             var y = event.clientY;
             var objects = canvas.getObjects();
-            objects.sort(function (a,b) {
-                return a.zIndex - b.zIndex;
-            });
             for (var i = objects.length - 1; i >= 0; i--) {
                 var object = objects[i];
-                console.log(canvas.containsPoint(event, object));
+                //console.log(object.left,canvas.containsPoint(event, object));
                 if (canvas.containsPoint(event, object)) {
                     this.setActiveObject(object);
                     this.contextMenuData.axis = {x, y};
-                    continue;
+                    event.preventDefault();
+
+                    return;  //为了右击时最上面的被选择
                 }
             }
-            event.preventDefault();
 
         },
         /*右键事件
@@ -899,11 +912,14 @@
                 return '#ZKONG#'+ escape(JSON.stringify(clipboard));
             }else{
                 let _objects = JSON.parse(JSON.stringify(clipboard._objects));
-                _objects.forEach((_obj)=>{
-                    _obj.top =  clipboard.top + _obj.top;
+                let newobjects = []
+                _objects.map((_obj)=>{
+                   // console.log(clipboard.width,clipboard.height,'|',clipboard.left,clipboard.top,'|', _obj.left, _obj.top);
+                    _obj.top =   clipboard.top + _obj.top;
                     _obj.left =  clipboard.left + _obj.left;
+                    newobjects.push(_obj);
                 });
-                return '#ZKONG#'+ escape(JSON.stringify(_objects));
+                return '#ZKONG#'+ escape(JSON.stringify(newobjects));
             }
         },
         //粘贴
@@ -918,22 +934,35 @@
             let _clipboard = JSON.parse(unescape(text.substring(7,text.length)));
             if(_clipboard instanceof Array){
                 let canvaobjs = [];
-                _clipboard.forEach((object)=>{
+                /*_clipboard.forEach((object)=>{
                     object.top = object.top+10;
                     object.left = object.left+10;
                     let canvaobj = this.addObject(object);
                     canvaobjs.push(canvaobj);
-                });
+                });*/
+                for(var i in _clipboard){
+                    this.cid = this.cid + 1;
+                    let object = _clipboard[i];
+                    object.id = this.cid;
+                    object.top = object.top+10;
+                    object.left = object.left+10;
+                    let canvaobj = this.addObject(object);
+                    canvaobjs.push(canvaobj);
+                    this.$emit('idAdd',1);
+                }
                 var sel = new fabric.ActiveSelection(canvaobjs, {
                     canvas: this.canvas,
                 });
                 this.canvas.setActiveObject(sel);
             }else{
+                this.cid = this.cid + 1;
                 let canvaobj;
-                _clipboard.top = _clipboard.top+10;
-                _clipboard.left = _clipboard.left+10;
-                canvaobj =  this.addObject(_clipboard);
+                _clipboard.id = this.cid;
+                _clipboard.top = _clipboard.top + 10;
+                _clipboard.left = _clipboard.left + 10;
+                canvaobj = this.addObject(_clipboard);
                 this.canvas.setActiveObject(canvaobj);
+                this.$emit('idAdd');
             }
             this.clipboard = null;
             this.canvas.requestRenderAll();
@@ -986,6 +1015,7 @@
         options = Object.assign({ width: 50, height: 30, left: 50, top: 50,  padding: 0, angle: 0, scaleX: 1,  scaleY: 1, }, options);
         let rect = new fabric.Rect({
           ...options,
+            id:options.id,
           name:options.name?options.name:'Rect',
           component:"component",
           isType:'Rect',

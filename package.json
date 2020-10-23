@@ -27,6 +27,8 @@
     "build": "node build/build.js"
   },
   "dependencies": {
+    "jr-qrcode": "^1.1.4",
+    "jsbarcode": "^3.11.3",
     "vue": "^2.5.2",
     "vue-gemini-scrollbar": "^2.0.1",
     "vue-router": "^3.0.1"

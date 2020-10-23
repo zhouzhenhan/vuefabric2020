@@ -61,10 +61,14 @@
         display: block;
         top: 4px;
         right: 0;
-        border-top: 4px solid transparent;
+        /*border-top: 4px solid transparent;
         border-left: 8px solid #111111;
         border-bottom: 4px solid transparent;
-        border-right: 4px solid transparent;
+        border-right: 4px solid transparent;*/
+        width: 12px;
+        height: 12px;
+        background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAAzklEQVQ4T7XUu2pCQRSF4U8ICJGAqbzFKhK18/0fI2VQC0lIEYmFIoKNbBhB5RjHo5l2Zv2stS9TcadTOeHUUcPXtfwi0AjfmGKbCzwFhe4NbawwwSIHVgQKXQuveEjOZpdg50Chi1r18Iw5xticA/4F2mvCWTfV6wM/RbAcUOjC1QBVfCZ3R7xc0F40RANLvB929VpQuGreAnpCuHm8JdpL6l4MZ6liR+x+ilK6/bFz0faIFKtSaiA7CbJOkN9LUx33/7a0d/tGclIUvtkBJI8oE+jxLwIAAAAASUVORK5CYII=");
+        background-size: contain;
     }
     .no-child-btn {
         padding: 5px 10px;

@@ -12167,6 +12167,7 @@ fabric.PatternBrush = fabric.util.createClass(fabric.PencilBrush, /** @lends fab
                 (actionPerformed = this._onScale(e, transform, x, y)) && this._fire('scaling', options);
             }
             else if (action === 'scaleX') {
+              console.log(this._scaleObject(x, y, 'x') , this._fire('scaling', options));
                 (actionPerformed = this._scaleObject(x, y, 'x')) && this._fire('scaling', options);
             }
             else if (action === 'scaleY') {
@@ -13370,7 +13371,7 @@ fabric.util.object.extend(fabric.StaticCanvas.prototype, /** @lends fabric.Stati
          * @type Boolean
          * @default
          */
-        lockUniScaling:           false,
+        lockUniScaling:           false,   //改变试试 happy change
 
         /**
          * When `true`, object horizontal skewing is locked

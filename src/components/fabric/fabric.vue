@@ -1,8 +1,8 @@
 <template>
   <div class="bigbox" :style="'width: '+ boxWidth+'px;height:'+boxHeight+'px;' "  @contextmenu="showMenu">
 
-    <div style="position: fixed; top:-99999999px; left:0; z-index:999999;">
-      <img id="barcode"/>
+    <div style="position: fixed; top:-9999999999px; left:800px; z-index:999999;">
+      <img id="barcode" />
       <img id="qrcode" :src="qrcodeImg" alt="" class="qrcodeImg">
     </div>
     <!--  <div class="title">{{name}}:{{width}}*{{height}} | {{boxWidth}}:{{boxHeight}}</div>-->
@@ -36,8 +36,20 @@
          <!-- <fabricbak ref="canvas" :width="width" :height="height" id="can"></fabricbak>-->
 
             <input type="text" id="code" style="position:fixed; top:-100px; z-index:9999;"><!--style="visibility: hidden;"-->
-            <div style="position:fixed; top:-100px; z-index:9999;visibility: hidden;">{{clipboard}}</div>
+            <div style="position:fixed; top:-100px; z-index:9999;"> {{style.fontFamily}}</div>
           <canvas id="canvas" :width="width>boxWidth?width:boxWidth" :height="height>boxHeight?height:boxHeight" ></canvas>
+
+            <div  style="position: fixed; top:-10000px; left:60px; z-index:99999999999999999999999;">
+                <canvas id="fontcanvas" ></canvas>
+            </div>
+
+           <!-- opacity:'+  textareashow?1:0 + ';   wrap="off" -->
+            <!--阿拉伯  lang="ar" dir="rtl"  white-space:pre-wrap; word-wrap:break-word;word-break:break-all   -->
+            <textarea name="text" id="" cols="30" rows="10"
+                      v-if="textareashow"   style="  white-space:pre-wrap; word-wrap:break-word; word-break:break-all;"
+                      :style="'position: fixed; top: ' + (style.top-2) +
+            'px; left: ' + (style.left-1)  + 'px; z-index: 999999;  width: ' + (style.width+1) + 'px; height: ' + style.height + 'px; font-size: ' + style.fontSize + 'px;font-family:' +style.fontFamily+ '; text-align:'+ style.textAlign +';border:1px dashed #ddd;outline:none; lineHeight:'+ style.lineHeight +'; transform: scale('+ canvasZoom +'); transform-origin:left top;' " v-model="textdata"
+                      @input="changetext" ></textarea> <!-- transform:scaleX(2);-->
 
         </div>
       </div>
@@ -57,6 +69,8 @@
   import Utils from '../../utils/utils';   //事件注册
   import initAligningGuidelines  from '../../utils/guidelines';  //组件间对齐线
   import vueContextMenu from '../../examples/contextmenu'   //右键菜单
+
+
 
 
 
@@ -166,7 +180,22 @@
           },
 
           //二维码
-        qrcodeImg:'',
+        qrcodeImg:'',   //二维码图片
+        activecanvaobjs:[], //活跃元素组
+        activeobj :{}, //活跃元素
+
+          textareashow:false,
+          textdata:'abcdefg',
+          textlines:1,
+          style:{
+            id:0,
+            top:0,
+            left:0,
+            width:200,
+            height:60,
+            fontSize: 20,
+            textAlign:'left',
+          },
 
       }
     },
@@ -276,7 +305,7 @@
     },
       watch:{
           idno(val, oldVal){
-              console.log('val',val,'old,',oldVal);
+             // console.log('val',val,'old,',oldVal);
               this.cid =val;
           }
       },
@@ -293,6 +322,8 @@
 
         });
       let that = this;
+
+      //  on(document.body, 'mousedown', this.clickbody);   //监听全局点击事件 暂时有bug
 
       on(document.getElementById('content').firstChild.childNodes[4], 'mousewheel', this.show);  //监听鼠标滚动控制刻度滚动
       on(document.getElementById('content').firstChild.childNodes[4], 'scroll', this.show);
@@ -377,7 +408,58 @@
       this.canvas = new fabric.Canvas('canvas', { preserveObjectStacking: true });
       let canvas = this.canvas;
 
+
       fabric.Canvas.prototype.rotationCursor = "url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABsAAAAbCAYAAACN1PRVAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyFpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNS1jMDE0IDc5LjE1MTQ4MSwgMjAxMy8wMy8xMy0xMjowOToxNSAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIChXaW5kb3dzKSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDo5NzBBQTBGQ0Y4ODcxMUVBQURGNkU5NzQ3OUY4RTA5NiIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDo5NzBBQTBGREY4ODcxMUVBQURGNkU5NzQ3OUY4RTA5NiI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOjk3MEFBMEZBRjg4NzExRUFBREY2RTk3NDc5RjhFMDk2IiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjk3MEFBMEZCRjg4NzExRUFBREY2RTk3NDc5RjhFMDk2Ii8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+QUJwRwAAAytJREFUeNrsVk1oGkEUXqVIqCRIhVICEsSTkFuwEPDaWiQ9NaQx6VGRaqCHQATBEFMKKUoLos0h4LV4aWxCbyqhEbx4CJJCwJMJRKVWxJ/EkJ/X9yabZd2oay+hhX7wsbPz3sybmTfv21UAAHdXUHJ3iL8rmEKh0CHdyASyhAQRC8gQ0izyNyCD9Lw1GeWsFxFvdDoduN1uSCQSUCqVQIxCoQChUAjMZjM5B5DTw8PDEAwG6f3Trfl6BFEgQzMzM3BwcAByaDabYLPZYHR0FJLJJOu73sdgwd65XC44Pz8XJjw+PoZYLAZ+vx+8Xi/b6enpqWBvtVqwu7vL2u12myZpywZDOCcnJ6FarbKBV1dXEI1GwWg0gkqlIgc/0qtWq2FiYgI2NjagVqt17LRer5NfvW8wxH0E7O3tCQMXFxfJEEWakCqRrxr5lBaQyWQ6gjUaDXJoyAV7gYDLy0s2iJJPiaZFdDmBRyMjI7C5udk1h2hvygX7jGADTk5OgG4i9hlFditym6ef8tcL3S7IPUklPEawRjqd5orFIjXzfP08M5lM35aXl5l9dXV1amtri8tms5xU8s7Ozuix3rfOEL8QbGWBQIDVjsj2FSGsnNrUh3yOnJLwSbdbLt3ZT8QDxM2uiiIbXR7xC8fncpvf+cOhoaGywWDgsNjpfRxtP/rJVZEPwlFAeohs67hbLpVKMVJbclSvPR4Pt7+/z62trbF3uWP8gmDHdHh4CBqNhjo1Ivs0MslzWtSvo8uEC2VjMd/UmZa7ja8QcHFxwQYtLS1R50cZ/SRpC66srAj59Pl8ZPANoiDfEYLszM3NUecHpFbiRykYR0ZI2kiuCEdHR6DX68lBP0gwm8ViYZJDIP1bWFgArVZ7o+x2pEupVMLY2BhEIhEmaQQSg/n5efLzdj2FHkfzfnZ2FiqVinA0+XyelYPdbgfaCWliuVzuUA2n00mDwz2PvE8u3mKBQzwel/3E7OzsAJ2GuC7/KBgf0IKMW61WCIfDkMvlmMiiQrCvApYAOBwO9tVGv5f95pINJtHEMDJHak6KhKwiU0gH3chB5lH8/5X754L9FmAAxKqp09gZRrsAAAAASUVORK5CYII=) 12 12, auto";
+
+        fabric.Canvas.prototype.customiseControls({
+            tl: {
+                action: 'scale'
+            },
+            tr: {
+                action: deleteObject,
+            },
+            bl: {
+                action: 'scale',
+            },
+            br: {
+                action: deleteObject,
+            },
+            mb: {
+                action: 'scaleY',
+            },
+            mt: {
+                action: 'scaleY',
+            },
+
+            mr:{
+                action:deleteObject,
+            },
+            ml:{
+                action: 'scaleX',
+            },
+            mtr: {
+                action: 'rotate'
+            }
+        });
+        /*fabric.Canvas.prototype.setControlsVisibility({
+            bl: false,
+            br: true,
+            mb: false,
+            ml: false,
+            mr: false,
+            mt: false,
+            mtr: false,
+            tl: false,
+            tr: false
+        });*/
+        function deleteObject(eventData, transform) {
+            console.log('deleteobj------');
+            var target = transform.target;
+            var canvas = target.canvas;
+            canvas.remove(target);
+            canvas.requestRenderAll();
+        }
+
       fabric.Object.prototype.originX = 'center';  //设置中心为左上角
       fabric.Object.prototype.originY = 'center';   //设置中心为左上角
 
@@ -443,7 +525,28 @@
       this.canvas.on('mouse:dblclick', function (options) {
         that.$emit('mouse:dblclick', options);
 
-        console.log('dblclick',options);
+       // console.log('dblclick',options);
+        /*if(options.target.isType==='Text2'){
+            let newlines = options.target.item(1)._splitTextIntoLines(options.target.item(1).text).lines;
+            that.textdata = options.target.item(1).text ;   //String(newlines).replace(/,/g, "\n")
+
+            that.$set(that.style,'width',options.target.width);
+            that.$set(that.style,'height',options.target.height);
+            that.$set(that.style,'top',options.target.top);
+            that.$set(that.style,'left',options.target.left);
+            that.$set(that.style,'id',options.target.id);
+
+            that.$set(that.style,'fontSize',options.target.item(1).fontSize);
+            that.$set(that.style,'lineHeight',options.target.item(1).lineHeight +0.07);
+
+           // console.warn(options.target.item(1).fontFamily);
+            that.$set(that.style,'fontFamily',options.target.item(1).fontFamily);
+
+           // console.log(that.style);
+
+            that.textareashow = true;
+
+        }*/
       });
       this.canvas.on('mouse:over', function (options) {
         that.$emit('mouse:over', options);
@@ -466,6 +569,7 @@
           Direction = null;
       });
       this.canvas.on('object:modified', function (options) {
+          console.log('object:modified');
         that.$emit('object:modified', options);
             //矩形 等元素边框不变形计算宽高，缩放比例为1，宽高取整
          /* if(!options.target._objects){
@@ -490,36 +594,113 @@
       this.canvas.on('object:rotating', function (options) {
         that.$emit('object:rotating', options);
 
+
+
+          /*var obj = options.target;
+          obj.setCoords();
+          if (obj.getBoundingRect().top < 0 || obj.getBoundingRect().left < 0) {
+              obj.top = Math.max(obj.top, obj.top - (obj.getBoundingRect().top / that.canvasZoom));
+              obj.left = Math.max(obj.left, obj.left - (obj.getBoundingRect().left / that.canvasZoom));
+          }
+          if (obj.getBoundingRect().top + obj.getBoundingRect().height - 1 > obj.canvas.height
+              || obj.getBoundingRect().left + obj.getBoundingRect().width - 1 > obj.canvas.width) {
+
+              obj.top = Math.min(obj.top, (obj.canvas.height - obj.getBoundingRect().height - 1 * that.canvasZoom) / that.canvasZoom + obj.top - obj.getBoundingRect().top / that.canvasZoom + 2);
+              obj.left = Math.min(obj.left, (obj.canvas.width - obj.getBoundingRect().width - 1 * that.canvasZoom) / that.canvasZoom + obj.left - (obj.getBoundingRect().left / that.canvasZoom - 2));
+          }*/
+
+
       });
       this.canvas.on('object:scaling', function (options) {
         that.$emit('object:scaling', options);
+
+         /* var obj = options.target;
+          obj.setCoords();
+          if(obj.getBoundingRect().top < 0 || obj.getBoundingRect().left < 0) {
+              obj.lockScalingX = true;
+              obj.lockScalingY = true;
+              obj.lockScalingFlip = true;
+          }else{
+              obj.lockScalingX = false;
+              obj.lockScalingY = false;
+              obj.lockScalingFlip = false;
+          }
+          if (obj.getBoundingRect().top + obj.getBoundingRect().height - 1 > obj.canvas.height
+              || obj.getBoundingRect().left + obj.getBoundingRect().width - 1 > obj.canvas.width) {
+              obj.lockScalingX = true;
+              obj.lockScalingY = true;
+              obj.lockScalingFlip = true;
+          }else{
+              obj.lockScalingX = false;
+              obj.lockScalingY = false;
+              obj.lockScalingFlip = false;
+          }*/
+
+
       });
       this.canvas.on('object:scaled', function (options) {
         that.$emit('object:scaled', options);
-        if(options.target._objects){
+       /* if(options.target._objects){
             //以下为了放大缩小时边框不变形
             let ids = [];
             let _objects = options.target._objects;
             that.discardActive();
             _objects.forEach((_obj)=>{
                 ids.push(_obj.id);
-                /*_obj.set('width',  parseInt(_obj.width * _obj.scaleX));
+                /!*_obj.set('width',  parseInt(_obj.width * _obj.scaleX));
                 _obj.set('height',  parseInt(_obj.height * _obj.scaleY));
                 _obj.set('scaleX',  1);
-                _obj.set('scaleY',  1);*/
+                _obj.set('scaleY',  1);*!/
             });
             that.setActiveObjs(ids);
+        }*/
+
+        if(options.target.isType==='Qrcode'){  //二维码放大缩小时重新获取图片，二维码图片不失真
+            options.target.set('width',  parseInt(options.target.width * options.target.scaleX));
+            options.target.set('height',  parseInt(options.target.height * options.target.scaleY));
+            options.target.set('scaleX',  1);
+            options.target.set('scaleY',  1);
+            //console.log(options.target.width,options.target.height);
+            that.changeQrcodeImage(options.target);
+            that.setActiveObject(options.target);
+        }
+        //console.log(options.target.isType,options.target);
+        if(options.target.isType==='Barcode'){  //条形码的位置显示
+            //console.log('条码拉伸',options.target.item(1).type);
+            //console.log('内容',options);
+            that.changeBarcodeImage(options.target);
         }
 
       });
       this.canvas.on('object:selected', function (options) {
-         //  console.log('selected',options.target);
+         //  console.log('666 selected',options.target);
           that.$emit('object:selected', options);
+         /* console.log('选中的元素:',options.target.id);
+          console.log('选中对象：',options.target);*/
+          if(options.target.isType==='Text2'){
+             // console.log('我是text:',options.target);
+          }
 
       });
       this.canvas.on('object:moving', function (options) {
-        //  console.log('moving',2,Top,Left);
+
         that.$emit('object:moving', options);
+
+         // console.log('moving',options,Top,Left);
+          var obj = options.target;
+          obj.setCoords();
+          // top-left  corner
+          if (obj.getBoundingRect().top < 0 || obj.getBoundingRect().left < 0) {
+              obj.top = Math.max(obj.top, obj.top - (obj.getBoundingRect().top / that.canvasZoom));
+              obj.left = Math.max(obj.left, obj.left - (obj.getBoundingRect().left / that.canvasZoom));
+          }
+          // bot-right corner
+          if (obj.getBoundingRect().top + obj.getBoundingRect().height - 1 > obj.canvas.height
+              || obj.getBoundingRect().left + obj.getBoundingRect().width - 1 > obj.canvas.width) {
+
+              obj.top = Math.min(obj.top, (obj.canvas.height - obj.getBoundingRect().height - 1 * that.canvasZoom) / that.canvasZoom + obj.top - obj.getBoundingRect().top / that.canvasZoom + 2);
+              obj.left = Math.min(obj.left, (obj.canvas.width - obj.getBoundingRect().width - 1 * that.canvasZoom) / that.canvasZoom + obj.left - (obj.getBoundingRect().left / that.canvasZoom - 2));
+          }
 
         //矩形 等元素边框不变形计算宽高，缩放比例为1，宽高取整
           if(!options.target._objects) {
@@ -556,23 +737,23 @@
       this.canvas.on('selection:updated', function (options) {
         that.$emit('selection:updated', options);
 
-        console.log('000   selection:updated')
+       // console.log('000   selection:updated')
       });
       this.canvas.on('selection:changed', function (options) {
         that.$emit('selection:changed', options);
-
-          console.log('111   selection:changed')
+        //   console.log('111   selection:changed')
       });
       this.canvas.on('selection:cleared', function (options) {
         that.$emit('selection:cleared', options);
 
-          console.log('222  selection:cleared')
+         // console.log('222  selection:cleared')
       });
       this.canvas.on('before:selection:cleared', function (options) {
         that.$emit('before:selection:cleared', options);
 
-          console.log('333  before:selection:cleared')
+      //    console.log('333  before:selection:cleared')
       });
+
       this.canvas.on('text:changed', function(options) {
         that.$emit('text:changed', options);
       });
@@ -585,6 +766,16 @@
       };
       this.canvas.on('after:render'),function(options){
         that.$emit('after:render',options);
+          /*canvas.forEachObject(function(obj) {
+              var bound = obj.getBoundingRect();
+
+              canvas.contextContainer.strokeRect(
+                  bound.left + 0.5,
+                  bound.top + 0.5,
+                  bound.width,
+                  bound.height
+              );
+          })*/
       };
       this.canvas.on('dragover'),function(options){
         that.$emit('dragover',options);
@@ -616,22 +807,11 @@
 
     },
     methods:{
-      //画条码
-        drawbarcode(number,option){
-          let barcodeImage = JsBarcode("#barcode", number, {
-            format: option.format?option.format:"CODE128",  //条形码的格式
-            lineColor:  option.lineColor?option.lineColor:"#000000",  //线条颜色
-            margin:  option.margin?option.margin:2, // 条码四边空白（默认为10px）
-            width:  option.width?option.width:2, //线宽
-            height:  option.height?option.height:20,  //条码高度
-            displayValue: false //是否显示文字信息
-          });
-          console.log(barcodeImage);
-        },
+
       //画二维码
       drawqrcode(text,option){
         let qrcodeImg = jrQrcode.getQrBase64(text, {
-          padding       :  option.margin?option.margin:2,   // 二维码四边空白（默认为10px）
+          padding       :  option.margin?option.margin:1,   // 二维码四边空白（默认为10px）
           width         :  option.width?option.width:80,  // 二维码图片宽度（默认为256px）
           height        :  option.height?option.height:80,  // 二维码图片高度（默认为256px）
           correctLevel  : QRErrorCorrectLevel.H,    // 二维码容错level（默认为高）
@@ -669,26 +849,28 @@
             var objects = canvas.getObjects();
             for (var i = objects.length - 1; i >= 0; i--) {
                 var object = objects[i];
-                console.log(object.component)
-                if(object.component !=='component'){  //判断不是背景也不是遮罩
-                  event.preventDefault();
-                  continue;
-                }
+                if(object.visible ){
+                    console.log(object.component)
+                    if(object.component !=='component'){  //判断不是背景也不是遮罩
+                      event.preventDefault();
+                      continue;
+                    }
 
-                if (canvas.containsPoint(event, object)) {
-                    this.setActiveObject(object);
-                    //新增滚动条，所以定位有变化
+                    if (canvas.containsPoint(event, object)) {
+                        this.setActiveObject(object);
+                        //新增滚动条，所以定位有变化
 
-                    this.contextMenuData.axis = { x, y};
-                    event.preventDefault();
+                        this.contextMenuData.axis = { x, y};
+                        event.preventDefault();
 
-                    return;  //为了右击时最上面的被选择
+                        return;  //为了右击时最上面的被选择
+                    }
                 }
             }
 
         },
         /*右键事件
-        * ----------------------------------------------------------------
+        * ----------------------------------------------------------------------------------------------------------------------------------------------
         * 标尺事件
         * */
 
@@ -740,8 +922,8 @@
       },
       //监听标尺滚动，修改内容区
       yshow(e){
-        document.getElementsByClassName('gm-scroll-view')[0].scrollTop = document.getElementById('yZhou').scrollTop;
-        document.getElementsByClassName('gm-scroll-view')[0].scrollLeft = document.getElementById('xZhou').scrollLeft;
+        document.getElementById('content').children[0].children[2].scrollTop = document.getElementById('yZhou').scrollTop;
+        document.getElementById('content').children[0].children[2].scrollLeft = document.getElementById('xZhou').scrollLeft;
       },
         yshowadd(){
             let newtop,newleft;
@@ -821,10 +1003,73 @@
       },
       /*
       * 标尺函数
-      * ------------------------------------------------------------
+      * ------------------------------------------------------------------------------------------------------------------------------------------
       * 画布函数
       * */
 
+        //全局的点击事件
+        clickbody(evet){
+            //console.log('clickbody',evet);
+
+            if(this.isInRange(evet.pageX,evet.pageY)){
+               // console.log('还在范围内哦OOOOOOOOOOOOOOOOOO');
+            }else{
+               // console.log('不在范围了XXXXXXXXXXXXXXXXX');
+                this.textareashow = false;
+            }
+
+        },
+        //判断是否在范围内
+        isInRange(value1, value2) {
+            value1 = Math.round(value1 );
+            value2 = Math.round(value2 );
+
+            let canleft = document.getElementById('can').offsetLeft;
+            let cantop = document.getElementById('can').offsetTop;
+
+            let scrollx =document.getElementById('content').children[0].children[2].scrollWidth;
+            let scrolly = document.getElementById('content').children[0].children[2].scrollHeight;
+           // console.log(scrollx,scrollx,'|',document.getElementsByClassName('gm-scroll-view')[0].scrollTop,document.getElementsByClassName('gm-scroll-view')[0].scrollLeft);
+
+
+            if( value1> this.style.left+canleft && value1< this.style.left+canleft+this.style.width && value2> this.style.top+cantop && value2< this.style.top+cantop + this.style.height ){
+                return true;
+            }
+            return false;
+        },
+
+        //改变文本域
+        changetext(value){
+            const text = value.srcElement.value;
+            let cur = this.getEditObj();
+            let newlines = cur.item(1)._splitTextIntoLines(text).lines;
+            let newtext ='';
+
+           // console.log(cur.item(1)._splitTextIntoLines(text))
+
+            //this.textdata = String(newlines).replace(/,/g, "\n");
+
+            this.textlines = newlines.length;
+
+            let text2 = '';
+            text2 = newlines.join('');
+
+
+            console.log(JSON.stringify(text));
+            console.log(text.length);
+            console.log(text2.length);
+
+            cur.item(1).set({text: text });
+            cur.set({textdemo:text });
+            this.renderCanvas();
+
+        },
+
+        //获取画布所有元素
+        getObjects(){
+            let obj = this.canvas.getObjects();
+            return obj;
+        },
 
       //元素不选中即置顶
       setStackingtrue(){
@@ -872,30 +1117,60 @@
             this.canvas.requestRenderAll();
             this.canvas.renderAll();
         },
+        //设置id 为当前活跃元素
+        setActiveid(id){
+            let objects = this.canvas.getObjects();
+            for(let i in objects){
+                if(objects[i].id === id){
+                    this.canvas.setActiveObject(objects[i]);
+                }
+            }
+            this.canvas.requestRenderAll();
+            this.canvas.renderAll();
+        },
+
 
       //单个删除 多个删除 不支持组合删除 ----delete快捷键 删除的
       removeCurrentObj () {
         let obj = this.canvas.getActiveObject();
         let deleteIds = [];
+       // console.log('del:',obj);
+
         if(obj._objects){
           this.canvas.discardActiveObject();
           for(var i in obj._objects){
             deleteIds.push(obj._objects[i].id);
             this.canvas.remove(obj._objects[i]);
           }
+            deleteIds.push(obj.id);
+            this.canvas.remove(obj);
         }else{
           deleteIds.push(obj.id);
           this.canvas.remove(obj);
         }
         this.canvas.renderAll();
+          this.$emit('deleteidsdata',deleteIds);
         return deleteIds;
       },
 
       //删除当前活跃元素 - 右键菜单调用该方法
       removeEditObj(){
         let obj = this.canvas.getActiveObject();
+        this.$emit('deleteidsdata',[obj.id]);
         this.canvas.remove(obj);
       },
+       //删除指定id
+       deleteObjs(id){
+           let objects = this.canvas.getObjects();
+           for(let i in objects){
+               if(objects[i].id == id){
+                   this.canvas.remove(objects[i]);
+               }
+           }
+           this.canvas.requestRenderAll();
+           this.canvas.renderAll();
+       },
+
       //删除指定元素
       removeObj(obj){
         this.canvas.remove(obj);
@@ -915,6 +1190,12 @@
         this.canvas.setWidth(w * this.canvasZoom);
         this.canvas.setHeight(h * this.canvasZoom);
         this.canvas.setZoom(n);
+        setTimeout(()=>{
+            this.yshowadd();     //计算滚动条检点对准画布原点
+        },10);
+
+
+        this.$emit('changeZoomTo',n);
 
         this.canvas.renderAll();
       },
@@ -951,7 +1232,9 @@
           this.canvas.renderAll();
         }
 
-        console.log('zoom:',this.canvasZoom);
+          this.$emit('changeZoomTo',this.canvasZoom);
+
+       // console.log('zoom:',this.canvasZoom);
       },
       //设置画布背景颜色
       setbackground(color){
@@ -1022,351 +1305,391 @@
           }
         }
       },
-        // 设置层级(对焦点活跃元素才可操作) - 右键菜单中调用了这几个方法
-        //下移一层
-        toNextLayer () {
-            let obj = this.canvas.getActiveObject();
-            if (!obj) {
-                return;
-            }
-            obj.sendBackwards(true);
-            this.canvas.renderTop();
-            this.canvas.renderAll();
+    // 设置层级(对焦点活跃元素才可操作) - 右键菜单中调用了这几个方法
+    //下移一层
+    toNextLayer () {
+        let obj = this.canvas.getActiveObject();
+        if (!obj) {
+            return;
+        }
+        obj.sendBackwards(true);
+        this.canvas.renderTop();
+        this.canvas.renderAll();
 
-            this.setTop(); //遮罩置顶，背景置底重置
-        },
-        //置于底层
-        toBottomLayer () {
-            let obj = this.canvas.getActiveObject();
-            if (!obj) {
-                return;
-            }
-            obj.sendToBack();
-            this.canvas.renderTop();
-            this.canvas.renderAll();
+        this.setTop(); //遮罩置顶，背景置底重置
 
-            this.setTop(); //遮罩置顶，背景置底重置
-        },
-        //上移一层
-        toLastLayer () {
-            let obj = this.canvas.getActiveObject();
-            if (!obj) {
-                return;
-            }
-            obj.bringForward(true);
-            this.canvas.renderTop();
-            this.canvas.renderAll();
+        this.$emit('changeLayer',obj);  //层级变动回调
+    },
+    //置于底层
+    toBottomLayer () {
+        let obj = this.canvas.getActiveObject();
+        if (!obj) {
+            return;
+        }
+        obj.sendToBack();
+        this.canvas.renderTop();
+        this.canvas.renderAll();
 
-            this.setTop(); //遮罩置顶，背景置底重置
-        },
-        //置于顶层
-        toTopLayer () {
-            let obj = this.canvas.getActiveObject();
-            if (!obj) {
-                return;
-            }
-            obj.bringToFront();
-            this.canvas.renderTop();
-            this.canvas.renderAll();
+        this.setTop(); //遮罩置顶，背景置底重置
 
-            this.setTop(); //遮罩置顶，背景置底重置
-        },
-        //复制
-        copyData(){
-            let clipboard =  this.canvas.getActiveObject();
-            if(clipboard==undefined || clipboard==null){
-                return;
-            }
-            if(!clipboard._objects){
-                console.log('单个元素复制');
+        this.$emit('changeLayer',obj);  //层级变动回调
+    },
+    //上移一层
+    toLastLayer () {
+        let obj = this.canvas.getActiveObject();
+        if (!obj) {
+            return;
+        }
+        obj.bringForward(true);
+        this.canvas.renderTop();
+        this.canvas.renderAll();
 
-                return '#ZKONG#'+ escape(JSON.stringify(clipboard));
-            }else{
-                let _objects = JSON.parse(JSON.stringify(clipboard._objects));
-                let newobjects = []
-                _objects.map((_obj)=>{
-                   // console.log(clipboard.width,clipboard.height,'|',clipboard.left,clipboard.top,'|', _obj.left, _obj.top);
-                    _obj.top =   clipboard.top + _obj.top;
-                    _obj.left =  clipboard.left + _obj.left;
-                    newobjects.push(_obj);
-                });
-                return '#ZKONG#'+ escape(JSON.stringify(newobjects));
-            }
-        },
-        //粘贴
-        paste(text){
-            if(this.clipboard==null){ //剪切板清除不掉，所以画布只可粘贴一次限制
-                return;
-            }
-            this.canvas.discardActiveObject();
-            if(text.substring(0,7)!=='#ZKONG#'){
-                return;
-            }
-            let _clipboard = JSON.parse(unescape(text.substring(7,text.length)));
-            if(_clipboard instanceof Array){
-                console.log('多个元素')
-                let canvaobjs = [];
-                /*_clipboard.forEach((object)=>{
-                    object.top = object.top+10;
-                    object.left = object.left+10;
-                    let canvaobj = this.addObject(object);
-                    canvaobjs.push(canvaobj);
-                });*/
-                for(var i in _clipboard){
-                    this.cid = this.cid + 1;
-                    let object = _clipboard[i];
+        this.setTop(); //遮罩置顶，背景置底重置
 
-                    object.id = this.cid;
-                    object.top = object.top+10;
-                    object.left = object.left+10;
-                    let canvaobj = this.addObject(object);
-                    canvaobjs.push(canvaobj);
-                    this.$emit('idAdd',1);
-                }
-                var sel = new fabric.ActiveSelection(canvaobjs, {
-                    canvas: this.canvas,
-                });
-                this.canvas.setActiveObject(sel);
-            }else{
-                console.log('单个元素');
+        this.$emit('changeLayer',obj);  //层级变动回调
+    },
+    //置于顶层
+    toTopLayer () {
+        let obj = this.canvas.getActiveObject();
+        if (!obj) {
+            return;
+        }
+        obj.bringToFront();
+        this.canvas.renderTop();
+        this.canvas.renderAll();
+
+        this.setTop(); //遮罩置顶，背景置底重置
+
+        this.$emit('changeLayer',obj);  //层级变动回调
+    },
+
+
+    //复制
+    copyData(){
+        let clipboard =  this.canvas.getActiveObject();
+
+        if(clipboard==undefined || clipboard==null){
+            return;
+        }
+        if(clipboard.get('type') === 'group'){                              //组复制
+            return '#ZKONG#'+ escape(JSON.stringify(clipboard));
+        }else if( clipboard.get('type') === 'activeSelection' ){            //多元素复制
+            console.log(clipboard._objects);
+
+            let _objects = JSON.parse(JSON.stringify(clipboard._objects));
+            let newobjects = [];
+            _objects.map((_obj)=>{
+                _obj.top =   clipboard.top + _obj.top;
+                _obj.left =  clipboard.left + _obj.left;
+                newobjects.push(_obj);
+            });
+            newobjects[0].parentscale = [clipboard.scaleX,clipboard.scaleY];  //第一个元素植入混合组件缩放比例
+            return '#ZKONG#'+ escape(JSON.stringify(newobjects));
+        }else{                                                              //单个元素复制
+            return '#ZKONG#'+ escape(JSON.stringify(clipboard));
+        }
+
+    },
+    //粘贴
+    async paste(text){
+        if(this.clipboard==null){ //剪切板清除不掉，所以画布只可粘贴一次限制
+            return;
+        }
+        this.canvas.discardActiveObject();
+        if(text.substring(0,7)!=='#ZKONG#'){
+            return;
+        }
+        let _clipboard = JSON.parse(unescape(text.substring(7,text.length)));
+
+        //console.log('所粘贴的元素：',_clipboard);
+
+        if(_clipboard instanceof Array){
+
+           // console.log('多个元素',_clipboard)
+            let canvaobjs = [];
+            this.activecanvaobjs = [];
+            for(var i in _clipboard){
+                this.$emit('idAdd');   //this.cid = this.cid + 1;
                 this.cid = this.cid + 1;
-                let canvaobj;
-                _clipboard.id = this.cid;
-                _clipboard.top = _clipboard.top + 10;
-                _clipboard.left = _clipboard.left + 10;
-                canvaobj = this.addObject(_clipboard);
+                let object = _clipboard[i];
+
+                object.id = this.cid;
+                object.top = object.top+10 + this.yTop;
+                object.left = object.left+10  + this.xLeft;
+                if( object.isType ==='Barcode'){
+                    object.width =  object.width * object.scaleX;
+                    object.height =  object.height * object.scaleY;
+                    object.scaleX = object.scaleY = 1;
+                }
+                let canvaobj = await this.createElement(object.isType,object);
+
+                if(canvaobj){
+                   // console.log('元素返回：',canvaobj.id);
+                    this.$emit('copyidsdata',[canvaobj.id]);  //一个一个复制
+                    canvaobjs.push(canvaobj);
+                }
+            }
+            //canvaobjs.push(...this.activecanvaobjs);
+           // console.log('活跃混合：',canvaobjs);
+            var sel = new fabric.ActiveSelection(canvaobjs, {  //多元素混合选中
+                canvas: this.canvas,
+            });
+            sel.set({       //还原第一个元素保存的混合元素的缩放
+                scaleX:_clipboard[0].parentscale[0],
+                scaleY:_clipboard[0].parentscale[1],
+            });
+            this.canvas.setActiveObject(sel);
+        }else{
+
+           // console.log('单个元素',_clipboard)
+
+            this.$emit('idAdd');   //this.cid = this.cid + 1;
+            this.cid = this.cid + 1;
+
+            let canvaobj;
+            _clipboard.id = this.cid;
+            _clipboard.top = _clipboard.top + 10  + this.yTop;
+            _clipboard.left = _clipboard.left + 10  + this.xLeft;
+
+            if( _clipboard.isType ==='Barcode'){
+                _clipboard.width =  parseInt(_clipboard.width * _clipboard.scaleX);
+                _clipboard.height =  parseInt(_clipboard.height * _clipboard.scaleY);
+                _clipboard.scaleX = 1;
+                _clipboard.scaleY = 1;
+            }
+            if( _clipboard.isType ==='Text'){
+                _clipboard.width =  parseInt(_clipboard.width * _clipboard.scaleX);
+                _clipboard.height =  parseInt(_clipboard.height * _clipboard.scaleY);
+                _clipboard.scaleX = 1;
+                _clipboard.scaleY = 1;
+            }
+            canvaobj = await this.createElement(_clipboard.isType,_clipboard);
+
+            //console.log('创建的元素',canvaobj);
+
+            if(canvaobj){
+                //console.log('元素返回(单个)：',canvaobj);
+                this.$emit('copyidsdata',[canvaobj.id]);  //单个元素 复制
                 this.canvas.setActiveObject(canvaobj);
-                this.$emit('idAdd');
-            }
-            this.clipboard = null;
-            this.canvas.requestRenderAll();
-        },
-        //复制粘贴操作（不用剪切板）
-        copypaste(){
-            let copydata = this.copyData();
-            this.clipboard = copydata; //仅本画布复制保存
-            this.paste(copydata);
-        },
-        //根据数据创建组件  复制粘贴时，修改已加入的左右边距
-        addObject(obj){
-          switch(obj.isType){
-              case 'Rect':
-                  obj.left = obj.left + this.xLeft;
-                  obj.top = obj.top + this.yTop;
-                  return this.createRect(obj);
-                  break;
-              case 'Text':
-                  obj.left = obj.left + this.xLeft;
-                  obj.top = obj.top + this.yTop;
-                  return this.createText(obj.text,obj);
-                  break;
-
-          }
-        },
-
-        //计算画布位置，初始化画布矩形  ********************************
-        initBgRect(options){
-          let left = 0;
-          let top = 0;
-          if(this.boxWidth> this.width*this.canvasZoom ){
-              left = this.boxWidth/2 - this.width/2;
-          }else{
-              left = 0;
-          }
-
-          if( this.boxHeight>this.height*this.canvasZoom){
-              top = this.boxHeight/2 - this.height/2;
-          }else{
-              top = 0;
-          }
-            console.log('灰色区域：',left,top);
-
-            this.xLeft = -left;
-            this.yTop = -top;
-
-            this.scaleCalc();    //标尺计算
-
-          options = Object.assign({ width: this.width, height: this.height, left: 0, top: 0,  padding: 0, angle: 0, scaleX: 1,  scaleY: 1, }, options);
-          let rect = new fabric.Rect({
-            ...options,
-              left: left,
-              top: top,
-              type: 'sBg',
-              name: 'background',
-              component: "bg",
-              isType: 'Rect',
-              isDiff: 'none',
-              selectable: false,
-              visible: true,
-              fill: options.fill ? options.fill : '#fff',
-              fillColor: options.fillColor ? options.fillColor : '#fff',
-
-              flipX: false,
-              flipY: false,
-              originX: 'left',
-              originY: 'top',
-              stopContextMenu: true,                            //禁掉鼠标右键默认事件
-              hoverCursor: 'default',
-              evented: false,
-              excludeFromExport: true,
-              hasControls: false,
-              perPixelTargetFind: false,
-              strokeWidth: 0,
-              stroke: null
-          });
-            this.canvas.remove(...this.canvas.getObjects('sBg'));
-            this.canvas.add(rect);
-            rect.sendToBack();
-
-
-            let x1,x2,y1,y2;
-            if(this.boxWidth> this.width*this.canvasZoom ) {
-                x1 = this.boxWidth / 2 - this.width / 2;
-                x2 = x1 + this.width;
-            }else{
-                x1 = 0;
-                x2 = this.width;
-            }
-            if(this.boxHeight>this.height*this.canvasZoom){
-                y1 = this.boxHeight/2 - this.height/2;
-                y2 = y1 + this.height;
-            }else{
-                y1 = 0;
-                y2 = this.height;
             }
 
-            let arrX = [0, x1, x2, x2 + x1];
-            let arrY = [0, y1, y2, y2 + y1];
+        }
+        this.clipboard = null;
+        this.canvas.requestRenderAll();
+    },
+
+    //复制粘贴 操作（不用剪切板）
+    copypaste(){
+        let copydata = this.copyData();
+        this.clipboard = copydata; //仅本画布复制保存
+        this.paste(copydata);
 
 
-            const pathOption = {
-                selectable: false,
-                fill: '#f1f1f1',
-                hoverCursor: 'default',
-                evented: false,
-                excludeFromExport: true,
-                hasControls: false,
-                perPixelTargetFind: false,
-                strokeWidth: 0,
-                stroke: null,
-                originX:'left',
-                originY:'top',
+    },
+
+    //计算画布位置，初始化画布矩形  ********************************
+    initBgRect(options){
+      let left = 0;
+      let top = 0;
+      if(this.boxWidth> this.width*this.canvasZoom ){
+          left = this.boxWidth/2 - this.width/2;
+      }else{
+          left = 0;
+      }
+
+      if( this.boxHeight>this.height*this.canvasZoom){
+          top = this.boxHeight/2 - this.height/2;
+      }else{
+          top = 0;
+      }
+      //  console.log('灰色区域：',left,top);
+
+        this.xLeft = -left;
+        this.yTop = -top;
+
+        this.$emit('setlefttop',left,top);
+
+
+        this.scaleCalc();    //标尺计算
+
+      options = Object.assign({ width: this.width, height: this.height, left: 0, top: 0,  padding: 0, angle: 0, scaleX: 1,  scaleY: 1, }, options);
+      let rect = new fabric.Rect({
+        ...options,
+          left: left,
+          top: top,
+          type: 'sBg',
+          name: 'background',
+          component: "bg",
+          isType: 'Rect',
+          isDiff: 'none',
+          selectable: false,
+          visible: true,
+          fill: options.fill ? options.fill : '#fff',
+          fillColor: options.fillColor ? options.fillColor : '#fff',
+
+          flipX: false,
+          flipY: false,
+          originX: 'left',
+          originY: 'top',
+          stopContextMenu: true,                            //禁掉鼠标右键默认事件
+          hoverCursor: 'default',
+          evented: false,
+          excludeFromExport: true,
+          hasControls: false,
+          perPixelTargetFind: false,
+          strokeWidth: 0,
+          stroke: null,
+      });
+        this.canvas.remove(...this.canvas.getObjects('sBg'));
+        this.canvas.add(rect);
+        rect.sendToBack();
+
+
+        let x1,x2,y1,y2;
+        if(this.boxWidth> this.width*this.canvasZoom ) {
+            x1 = this.boxWidth / 2 - this.width / 2;
+            x2 = x1 + this.width;
+        }else{
+            x1 = 0;
+            x2 = this.width;
+        }
+        if(this.boxHeight>this.height*this.canvasZoom){
+            y1 = this.boxHeight/2 - this.height/2;
+            y2 = y1 + this.height;
+        }else{
+            y1 = 0;
+            y2 = this.height;
+        }
+
+        let arrX = [0, x1, x2, x2 + x1];
+        let arrY = [0, y1, y2, y2 + y1];
+
+
+        const pathOption = {
+            selectable: false,
+            fill: '#f1f1f1',
+            hoverCursor: 'default',
+            evented: false,
+            excludeFromExport: true,
+            hasControls: false,
+            perPixelTargetFind: false,
+            strokeWidth: 0,
+            stroke: null,
+            originX:'left',
+            originY:'top',
+        }
+
+        //console.log(x1,x2,y1,y2,arrX,arrY);
+
+        const rect1 = new fabric.Rect({
+            left: arrX[0],
+            top: arrY[0],
+            width: arrX[1] - arrX[0],
+            height: arrY[3] - arrY[0]
+        });
+        const rect2 = new fabric.Rect({
+            left: arrX[1] ,
+            top: arrY[0],
+            width: arrX[3] - arrX[1] + 2,
+            height: arrY[1] - arrY[0]
+        });
+        const rect3 = new fabric.Rect({
+            left: arrX[2],
+            top: arrY[1] - 1,
+            width: arrX[3] - arrX[2],
+            height: arrY[2] - arrY[1] + 2
+        });
+        const rect4 = new fabric.Rect({
+            left: arrX[1],
+            top: arrY[2],
+            width: arrX[3] - arrX[1],
+            height: arrY[3] - arrY[2]
+        });
+
+
+
+        rect1.set({
+            name: 'mask1',
+            ...pathOption,
+            /*fill: 'red',*/
+        })
+        rect2.set({
+            name: 'mask2',
+            ...pathOption,
+            /*fill: 'yellow',*/
+        })
+        rect3.set({
+            name: 'mask3',
+            ...pathOption,
+            /*fill: 'blue',*/
+        })
+        rect4.set({
+            name: 'mask4',
+            ...pathOption,
+            /*fill: 'green',*/
+        });
+
+        let maskPath = new fabric.Group([rect1, rect2, rect3, rect4], {
+            originX:'left',
+            originY:'top',
+            selectable: false,
+            excludeFromExport: true,
+            lockMovementX: true,
+            lockMovementY: true,
+            lockRotation: true,
+            lockScalingX: true,
+            lockScalingY: true,
+            lockUniScaling: true,
+            hoverCursor: 'auto',
+            name: 'grid',
+            left: 0,
+            top: 0,
+            type: 'sMask',
+            evented: false
+        })
+
+      this.canvas.remove(...this.canvas.getObjects('sMask'));
+      this.canvas.add(maskPath);
+      maskPath.bringToFront();
+
+      this.canvas.renderTop();
+      this.canvas.renderAll();
+    },
+    //遮罩置顶
+    setTop(){
+        let objects = this.canvas.getObjects();
+        objects.forEach((obj)=>{
+            if(obj.type=='sMask'){
+                obj.bringToFront();
+                this.canvas.renderTop();
+                this.canvas.renderAll();
             }
-
-            //console.log(x1,x2,y1,y2,arrX,arrY);
-
-            const rect1 = new fabric.Rect({
-                left: arrX[0],
-                top: arrY[0],
-                width: arrX[1] - arrX[0],
-                height: arrY[3] - arrY[0]
-            });
-            const rect2 = new fabric.Rect({
-                left: arrX[1] ,
-                top: arrY[0],
-                width: arrX[3] - arrX[1] + 2,
-                height: arrY[1] - arrY[0]
-            });
-            const rect3 = new fabric.Rect({
-                left: arrX[2],
-                top: arrY[1] - 1,
-                width: arrX[3] - arrX[2],
-                height: arrY[2] - arrY[1] + 2
-            });
-            const rect4 = new fabric.Rect({
-                left: arrX[1],
-                top: arrY[2],
-                width: arrX[3] - arrX[1],
-                height: arrY[3] - arrY[2]
-            });
-
-
-
-            rect1.set({
-                name: 'mask1',
-                ...pathOption,
-                /*fill: 'red',*/
-            })
-            rect2.set({
-                name: 'mask2',
-                ...pathOption,
-                /*fill: 'yellow',*/
-            })
-            rect3.set({
-                name: 'mask3',
-                ...pathOption,
-                /*fill: 'blue',*/
-            })
-            rect4.set({
-                name: 'mask4',
-                ...pathOption,
-                /*fill: 'green',*/
-            });
-
-            let maskPath = new fabric.Group([rect1, rect2, rect3, rect4], {
-                originX:'left',
-                originY:'top',
-                selectable: false,
-                excludeFromExport: true,
-                lockMovementX: true,
-                lockMovementY: true,
-                lockRotation: true,
-                lockScalingX: true,
-                lockScalingY: true,
-                lockUniScaling: true,
-                hoverCursor: 'auto',
-                name: 'grid',
-                left: 0,
-                top: 0,
-                type: 'sMask',
-                evented: false
-            })
-
-          this.canvas.remove(...this.canvas.getObjects('sMask'));
-          this.canvas.add(maskPath);
-          maskPath.bringToFront();
-
-          this.canvas.renderTop();
-          this.canvas.renderAll();
-        },
-        //遮罩置顶
-        setTop(){
-            let objects = this.canvas.getObjects();
-            objects.forEach((obj)=>{
-                if(obj.type=='sMask'){
-                    obj.bringToFront();
-                    this.canvas.renderTop();
-                    this.canvas.renderAll();
-                }
-                if(obj.type=='sBg'){
-                   obj.sendToBack();
-                    this.canvas.renderTop();
-                    this.canvas.renderAll();
-                }
-            })
-        },
-
-
+            if(obj.type=='sBg'){
+               obj.sendToBack();
+                this.canvas.renderTop();
+                this.canvas.renderAll();
+            }
+        })
+    },
 
       //水平居中分布
       toHorizontalCenterDistribution() {
         var obj = this.getEditObj();
-
+         // console.log(obj);
+          if(!obj){return;}
         if (obj._objects) {
           obj._objects.sort(function (a, b) {
             return a.left - b.left;
           });
           for (var o in obj._objects) {
-            console.log(obj._objects[o].width * obj._objects[o].scaleX,
-              o * ((obj.getBoundingRect().width / this.canvasZoom) / (obj._objects.length - 1)),
-              (obj.getBoundingRect().width / this.canvasZoom) / 2 - o * ((obj._objects[o].width * obj._objects[o].scaleX) / (obj._objects.length - 1)));
 
-            if (o > 0) {
+              obj._objects[o].left = o * ((obj.getBoundingRect().width / (this.canvasZoom* obj.scaleX)) / (obj._objects.length - 1)) - (obj.getBoundingRect().width / (this.canvasZoom* obj.scaleX)) / 2 - o * ((obj._objects[o].width * obj._objects[o].scaleX) / (obj._objects.length - 1));
 
+           /* if (o > 0) {
               obj._objects[o].left = o * ((obj.getBoundingRect().width / this.canvasZoom) / (obj._objects.length - 1)) - (obj.getBoundingRect().width / this.canvasZoom) / 2 - o * ((obj._objects[o].width * obj._objects[o].scaleX) / (obj._objects.length - 1));
             } else {
               obj._objects[o].left = o * ((obj.getBoundingRect().width / this.canvasZoom) / (obj._objects.length - 1)) - (obj.getBoundingRect().width / this.canvasZoom) * obj._objects[o].scaleX / 2;
-            }
+            }*/
           }
           this.canvas.renderTop();
           this.canvas.renderAll();
@@ -1377,16 +1700,19 @@
       //垂直居中分布
       toVerticalCenterDistribution() {
         var obj = this.getEditObj();
+          if(!obj){return;}
         if (obj._objects) {
           obj._objects.sort(function (a, b) {
             return a.top - b.top;
           });
           for (var o in obj._objects) {
-            if (o > 0) {
+              obj._objects[o].top = o * ((obj.getBoundingRect().height / (this.canvasZoom* obj.scaleY)) / (obj._objects.length - 1)) - (obj.getBoundingRect().height / (this.canvasZoom* obj.scaleY)) / 2 - o * ((obj._objects[o].height * obj._objects[o].scaleY) / (obj._objects.length - 1));
+
+            /*if (o > 0) {
               obj._objects[o].top = o * ((obj.getBoundingRect().height / this.canvasZoom) / (obj._objects.length - 1)) - (obj.getBoundingRect().height / this.canvasZoom) / 2 - o * ((obj._objects[o].height * obj._objects[o].scaleY) / (obj._objects.length - 1));
             } else {
               obj._objects[o].top = o * ((obj.getBoundingRect().height / this.canvasZoom) / (obj._objects.length - 1)) - (obj.getBoundingRect().height / this.canvasZoom) / 2;
-            }
+            }*/
           }
           this.canvas.renderTop();
           this.canvas.renderAll();
@@ -1396,11 +1722,15 @@
       //左对齐
       toLeftAlign() {
         var obj = this.getEditObj();
+          if(!obj){return;}
         if (obj._objects) {
           for (var o in obj._objects) {
-            obj._objects[o].left = -(obj.getBoundingRect().width / this.canvasZoom) / 2;
-            this.getactiveobj(obj._objects[o].id).marginLeft = obj.getBoundingRect().left;
+            obj._objects[o].left = -(obj.getBoundingRect().width / (this.canvasZoom* obj.scaleX)) / 2;
+            //this.getactiveobj(obj._objects[o].id).marginLeft = obj.getBoundingRect().left;
           }
+
+         this.canvas.requestRenderAll();
+
           this.canvas.renderTop();
           this.canvas.renderAll();
         }
@@ -1409,6 +1739,7 @@
       //水平居中对齐
       toHorizontalCenterAlign() {
         var obj = this.getEditObj();
+          if(!obj){return;}
         if (obj._objects) {
           for (var o in obj._objects) {
             obj._objects[o].left = -(obj._objects[o].width * obj._objects[o].scaleX) / 2;
@@ -1422,9 +1753,10 @@
       //右对齐
       toRightAlign() {
         var obj = this.getEditObj();
+          if(!obj){return;}
         if (obj._objects) {
           for (var o in obj._objects) {
-            obj._objects[o].left = (obj.getBoundingRect().width / this.canvasZoom) / 2 - (obj._objects[o].width * obj._objects[o].scaleX);
+            obj._objects[o].left = (obj.getBoundingRect().width / (this.canvasZoom* obj.scaleX)) / 2 - (obj._objects[o].width * obj._objects[o].scaleX);
           }
           this.canvas.renderTop();
           this.canvas.renderAll();
@@ -1434,10 +1766,11 @@
       //顶对齐
       toTopAlign() {
         var obj = this.getEditObj();
+        if(!obj){return;}
         if (obj._objects) {
           for (var o in obj._objects) {
-            obj._objects[o].top = -(obj.getBoundingRect().height / this.canvasZoom) / 2;
-            this.getactiveobj(obj._objects[o].id).marginTop = obj.getBoundingRect().top;
+            obj._objects[o].top = -(obj.getBoundingRect().height / (this.canvasZoom* obj.scaleY)) / 2;
+           // this.getactiveobj(obj._objects[o].id).marginTop = obj.getBoundingRect().top;
           }
           this.canvas.renderTop();
           this.canvas.renderAll();
@@ -1447,6 +1780,7 @@
       //垂直居中对齐
       toVerticalCenterAlign() {
         var obj = this.getEditObj();
+          if(!obj){return;}
         if (obj._objects) {
           for (var o in obj._objects) {
             obj._objects[o].top = -(obj._objects[o].height * obj._objects[o].scaleY) / 2;
@@ -1459,9 +1793,10 @@
       //底对齐
       toBottomAlign() {
         var obj = this.getEditObj();
+          if(!obj){return;}
         if (obj._objects) {
           for (var o in obj._objects) {
-            obj._objects[o].top = (obj.getBoundingRect().height / this.canvasZoom) / 2 - (obj._objects[o].height * obj._objects[o].scaleY);
+            obj._objects[o].top = (obj.getBoundingRect().height / (this.canvasZoom* obj.scaleY)) / 2 - (obj._objects[o].height * obj._objects[o].scaleY);
           }
           this.canvas.renderTop();
           this.canvas.renderAll();
@@ -1485,6 +1820,28 @@
        selectionBorderColor:   'rgba(0, 0, 0, 0.4)',     // 拖拽选择框样式修改
        * */
 
+      //画条码
+      drawbarcode(number,option){
+          return new Promise(function(resolve, reject) {
+              JsBarcode("#barcode", number, {
+                  format: option.format ? option.format : "CODE128",  //条形码的格式
+                  lineColor: option.lineColor ? option.lineColor : "#000000",  //线条颜色
+                  margin: option.margin ? option.margin : 0, // 条码四边空白（默认为10px）
+                  width: option.lineWidth ? option.lineWidth : 2, //线宽
+                  height: option.height ? option.height : 20,  //条码高度
+                  displayValue: false //是否显示文字信息
+              });
+              document.getElementById("barcode").onload = () => {
+                 // console.log(document.getElementById("barcode").src);
+                  let img = document.getElementById("barcode").src;
+                  resolve(img);
+              };
+              document.getElementById("barcode").onerror = function() {
+                  reject(new Error('barcode is error!' ));
+              };
+          });
+      },
+
       /**
        * 创建元素
        * @param name   : Rect, Rectangle, Parallelogram, Circle, Dottedline, EqualTriangle, Image, Barcode, Qrcode, Text
@@ -1498,10 +1855,13 @@
        *  imgData,
        * @return obj
        * */
-      createElement(name,options){
+     async createElement(name,options){
         if(!name){
           return
         }
+       // this.discardActive();
+        let canvas = this.canvas;
+        let that = this;
         let canvasObject,newOptions;
         options = {
           ...options,
@@ -1510,8 +1870,8 @@
           component:"component",
           isDiff: 'static',
           padding: 0,
-          scaleX: 1,
-          scaleY: 1,
+          scaleX: options.scaleX ? options.scaleX :1,
+          scaleY:  options.scaleY ? options.scaleY :1,
           flipX: false,
           flipY: false,
           originX: 'left',
@@ -1523,15 +1883,15 @@
 
           left: options.left ? -this.xLeft + options.left: -this.xLeft,
           top: options.top ? -this.yTop + options.top : -this.yTop,
-          width: options.width ? options.width : 60,
+          width: options.width ? options.width: 60,
           height:options.height ? options.height : 30,
           angle: options.angle ? options.angle : 0,
 
           fill: options.fill?options.fill:'#000000',                                            // 填充的颜色（矩形）
           fillColor: options.fillColor?options.fillColor:'#000000',                              // 填充的颜色
 
-          backgroundColor: options.backgroundColor?options.backgroundColor:'rgba(0,0,0,0)',   // 边框填充的颜色
-          stroke: options.stroke?options.stroke:'rgba(0,0,0,0)',                              // 边框颜色
+          backgroundColor: options.backgroundColor?options.backgroundColor:'',   // 边框填充的颜色
+          stroke: options.stroke?options.stroke:'',                              // 边框颜色
           strokeWidth: options.strokeWidth?options.strokeWidth:0,                             // 边框宽度
           strokeDashArray:options.strokeDashArray?options.strokeDashArray:[0,0],              // 边框样式 虚线 [5,1]     直线[0,0]  线段也是这个参数
 
@@ -1556,8 +1916,8 @@
               ...options,
               isType:'Rectangle',
               name:options.name?options.name:'Rectangle',
-              rx:options.rx?options.rx:15,
-              ry:options.ry?options.ry:15,
+              rx:options.rx?options.rx:5,
+              ry:options.ry?options.ry:5,
             };
             canvasObject = new fabric.Rect({...newOptions});          //创建
             break;
@@ -1576,8 +1936,8 @@
           case 'Circle':            //----------------------------------------------------------------------------------------椭圆形
             newOptions = {
               ...options,
-              isType:'Parallelogram',
-              name:options.name?options.name:'Parallelogram',
+              isType:'Circle',
+              name:options.name?options.name:'Circle',
               rx:options.width/2,      // options.rx?options.rx:15,
               ry:options.height/2,     // options.ry?options.ry:15,
             };
@@ -1610,7 +1970,7 @@
               name:options.name?options.name:'Dottedline',
               strokeDashArray: options.DottedlineType===3?[10, 4, 3, 4]:(options.DottedlineType===2?[8,2]:[0,0]),
               stroke: options.fill,
-              strokeWidth: options.height,
+              strokeWidth: options.strokeWidth,
             };
             let x1 = -this.xLeft + options.left;
             let x2 = -this.xLeft + options.left + options.width;
@@ -1638,70 +1998,794 @@
             canvasObject = new fabric.Triangle({...newOptions});          //创建
             break;
           case 'Image':             //----------------------------------------------------------------------------------------图片
-            let canvas = this.canvas;
-            let that = this;
-            fabric.Image.fromURL(options.url, function (img) {
-              img.set({                   //图片不设置宽度高度，来定义图片放大缩小
-                id: options.id ? options.id : 'image',
-                isType: 'Image',
-                component:"component",
-                isDiff: 'static',
-                padding: 0,
-                flipX: false,
-                flipY: false,
-                originX: 'left',
-                originY: 'top',
-                stopContextMenu: true,                            //  禁掉鼠标右键默认事件
-                minScaleLimit: 0.0001,                            //  最小限制
-                lockSkewingX: true,                               //  禁掉按住shift时的变形
-                lockSkewingY:true,
-
-                left: options.left,
-                top: options.top,
-                angle: options.angle ? options.angle : 0,
-                name: options.name ? options.name : 'Image',
-                scaleX:  options.width / img.width,
-                scaleY: options.height / img.height,
-
-                stroke: options.stroke?options.stroke:'rgba(0,0,0,0)',                              // 边框颜色
-                strokeWidth: options.strokeWidth?options.strokeWidth:0,                             // 边框宽度
-                strokeDashArray:options.strokeDashArray?options.strokeDashArray:[0,0],              // 边框样式 虚线 [5,1]     直线[0,0]  线段也是这个参数
-
-                selectable: options.selectable!==false ? true : options.selectable,                 //元素是否可选中  如段码屏中可见不可移动false
-                visible: options.visible!==false ? true : options.visible,                          //元素是否可见
-              });
-              img.hasControls = true;
-              img.hasBorders = true;
-              canvas.add(img); // 把图片添加到画布上
-              if (options && options.registeObjectEvent) {
-                Utils.registeObjectEvent(that, img);
-              }
-              canvas.renderAll.bind(canvas);
-              that.setTop();  //遮罩置顶
-            });
-            return;
-            break;
+            canvasObject = await that.createURLImage(options);
+            //console.log(canvasObject);
+            return canvasObject;
           case 'Barcode':           //----------------------------------------------------------------------------------------条码
-            break;
+              canvasObject = await that.createBarcode(options);
+              return canvasObject;
           case 'Qrcode':            //----------------------------------------------------------------------------------------二维码
+              canvasObject = await that.createQrcode(options);
+             return canvasObject;
+          case 'Time2':
+              const rect1 = new fabric.Rect({
+                  name:options.name?options.name:'Textbg',
+                  component:"component",
+                  isType:'Textbg',
+                  isDiff: 'static',
+                  lockScalingFlip:true,
+
+                  /*originX: 'left',
+                  originY: 'top',
+                  left:0,
+                  top:0,*/
+              });
+              const text1 = new fabric.Text(options.text, {
+                  name:options.name?options.name:'Textcentent',
+                  component:"component",
+                  isType:'Textcentent',
+                  isDiff: 'static',
+                  fill:'#ff0000',
+                  splitByGrapheme: true,
+                  lockScalingFlip:true,
+                  fontSize:options.fontSize?options.fontSize:40,
+                  fontFamily:'Times New Roman',
+
+                 /* originX: 'left',
+                  originY: 'top',
+                  left:0,
+                  top:0,*/
+                 /* 'lineHeight':1.2,
+                  '_fontSizeFraction':0.26,
+                  '_fontSizeMult':0.95,*/
+              });
+              canvasObject = new fabric.Group([rect1,text1], {
+                  isType:'Time',
+                  name:options.name?options.name:'Time',
+                  width:text1.width,
+                  height:text1.height,
+                  originX: 'left',
+                  originY: 'top',
+                  flipX: false,
+                  flipY: false,
+                  lockSkewingX: true,                  //禁掉按住shift时的变形
+                  lockSkewingY:true,
+                  scaleX:1,
+                  scaleY:1,
+                                                        //禁止变形  lockUniScaling:true,
+
+                  id:options.id,
+                  left: options.left,
+                  top: options.top,
+                  angle:options.angle,
+                  imgText:options.text,
+
+
+
+
+
+
+                  isElasticSize:1,
+
+                  clipTo:function(ctx) {
+                      ctx.rect(-text1.width/2,-text1.height/2,text1.width,text1.height);
+                  }
+              });
+              canvasObject.item(0).set({'width':text1.width, 'height':text1.height,});
+
+              /*canvasObject.item(0).set({originX: 'left',originY: 'top', left: -text1.width/2,top: -parseFloat(text1.height/2),});
+              canvasObject.item(1).set({originX: 'left',originY: 'top', left: -text1.width/2,top: -parseFloat(text1.height/2),});*/
+
+             /*
+              canvasObject.item(1).set({'width':text1.width, 'height':text1.height,});*/
+
+                break;
+            case 'Time':
+                canvasObject = await this.createText(options.textdemo,options);
+                break;
+            case 'Text':
+                canvasObject = await this.createText(options.textdemo,options);
+                break;
+
+          case 'Text2':              //----------------------------------------------------------------------------------------文本
+
+
+              const rect = new fabric.Rect({
+                  width: options.width,
+                  height: options.height,
+                  fill: options.textback,
+                  originX: 'left',
+                  originY: 'top',
+                  left:0,
+                  top:0,
+
+                  name:options.name?options.name:'Textbg',
+                  component:"component",
+                  isType:'Textbg',
+                  isDiff: 'static',
+                  lockScalingFlip:true,
+              });
+              console.log('text2',rect);
+
+              options.textdemo = options.textdemo?options.textdemo:options.objects[1].text;
+              const text = new fabric.Textbox(options.textdemo, {
+                  left: 0,
+                  top: 0,
+                  originX: 'left',
+                  originY: 'top',
+                  centeredRotation: true,/*
+                  fill: options.textcolor,
+                  width: options.width,
+                  fontFamily:options.fontFamily,
+                  fontSize:options.fontSize,*/
+
+                  name:options.name?options.name:'Textcentent',
+                  component:"component",
+                  isType:'Textcentent',
+                  isDiff: 'static',
+                  splitByGrapheme: true,
+                  lockScalingFlip:true,
+
+                  editable: true
+              });
+
+              console.log('text2',text);
+              canvasObject = new fabric.Group([rect,text], {
+                  flipX: false,
+                  flipY: false,
+                  lockSkewingX: true,                  //禁掉按住shift时的变形
+                  lockSkewingY:true,
+                  originX: 'left',
+                  originY: 'top',
+                  width: options.width,
+                  height: options.height,
+
+                  id:options.id,
+                  left: options.left,
+                  top: options.top,
+                  name:options.name?options.name:'Text',
+                  angle:options.angle,
+                  component:"component",
+                  isType:'Text',
+                  isDiff: 'static',
+                  lockScalingFlip:true,
+                  minScaleLimit: 0.0001,                            //  最小限制
+                  textdemo:options.textdemo,
+                  textback:options.textback,
+                  textcolor:options.textcolor,
+
+                  stroke:'#000',
+                  strokeWidth:2,
+
+
+
+                 /* clipTo: function(ctx) {
+                      ctx.rect(-options.width/2,-options.height/2,options.width,options.height);
+                  }*/
+
+              });
+
+              /*canvasObject.item(0).set({
+                  top:-canvasObject.item(0).height/2-0.5,
+                  left:-canvasObject.item(0).width/2-0.5,
+              });
+
+              options.originXY = options.originXY ? options.originXY : ['left','top'];
+              if(options.originXY[0]==='left'){
+                  canvasObject.item(1).set({
+                      left:-canvasObject.item(0).width/2-0.5,
+                      textAlign: 'left',
+                  });
+              }else if(options.originXY[0]==='center'){
+                  canvasObject.item(1).set({
+                      left:-canvasObject.item(0).width/2-0.5,
+                      textAlign: 'center',
+                  });
+              }else if(options.originXY[0]==='right'){
+                  canvasObject.item(1).set({
+                      left:-canvasObject.item(0).width/2-0.5,
+                      textAlign: 'right',
+                  });
+              }
+              if(options.originXY[1]==='top'){
+                  canvasObject.item(1).set({
+                      top: -canvasObject.item(0).height/2,
+                  });
+              }else if(options.originXY[1]==='center'){
+                  canvasObject.item(1).set({
+                      top: - canvasObject.item(1).height/2,
+                  });
+              }else if(options.originXY[1]==='bottom'){
+                  canvasObject.item(1).set({
+                      top:canvasObject.item(0).height/2 - canvasObject.item(1).height,
+                  });
+              }*/
+
             break;
-          case 'Text':              //----------------------------------------------------------------------------------------文本
-            break;
+
+            case 'test':
+                const rectOptions = {
+                    left: 500,
+                    top: 200,
+                    width: 200,
+                    height: 75,
+                    fill: '#eee',
+                    originX:'left',
+                    originY:'top',
+                    stroke:'#000',
+                    strokeWidth:2,
+                    strokeDashArray:[3,1],
+                    minScaleLimit: 0.2,
+                    flipX: false,
+                    flipY: false,
+                    lockSkewingX: true,                  //禁掉按住shift时的变形
+                    lockSkewingY:true,
+                    lockScalingFlip:true,
+
+                    component:"component",
+                    isType:'newText',
+                    isDiff: 'static',
+                };
+                const textOptions = {
+                    left: 500,
+                    top: 200,
+                    xLeft:30,
+                    xRight:10,
+                    yTop:20,
+                    yBot:10,
+                    width: 200,
+                    height: 75,
+                    fill: '#333',
+                    fontSize: 30,
+                    originX:'left',
+                    originY:'top',
+                    splitByGrapheme:  true,
+                    lockScalingFlip:true,
+                    minScaleLimit: 0.2,
+                };
+                canvasObject = new fabric.RectWithText(rectOptions, textOptions, 'Some text');
+                console.log(canvasObject);
+                break;
           default:                  //----------------------------------------------------------------------------------------其他
 
         }
 
-        console.log(canvasObject);
-
-        this.canvas.add(canvasObject);
-        this.setTop();                                         //遮罩置顶
-        this.canvas.renderAll();
-
-        return canvasObject;
+          canvasObject.setCoords();
+          this.setActiveObject(canvasObject);
+          this.canvas.add(canvasObject);
+          this.setTop();                                         //遮罩置顶
+          this.canvas.renderAll();
+          return canvasObject;
 
       },
+        //获取创建的图片结果
+        createURLImage(options){
+            let that = this;
+            let canvas = this.canvas;
+            return new Promise(function(resolve, reject) {
+                options.src = options.src ? options.src:'./static/images/img.svg';
+                fabric.Image.fromURL(options.src, function (img) {
+
+                    img.set({                   //图片不设置宽度高度，来定义图片放大缩小
+                        id: options.id ? options.id : 'image',
+                        isType: 'Image',
+                        component:"component",
+                        isDiff: 'static',
+                        padding: 0,
+                        flipX: false,
+                        flipY: false,
+                        originX: 'left',
+                        originY: 'top',
+                        stopContextMenu: true,                            //  禁掉鼠标右键默认事件
+                        minScaleLimit: 0.0001,                            //  最小限制
+                        lockSkewingX: true,                               //  禁掉按住shift时的变形
+                        lockSkewingY:true,
+
+                        left: options.left,
+                        top: options.top,
+                        angle: options.angle ? options.angle : 0,
+                        name: options.name ? options.name : 'Image',
+                        /*scaleX:  options.width / img.width,
+                        scaleY: options.height / img.height,
+                        width: img.width,
+                        height: img.height,
+        */
+                        scaleX:options.scaleX,
+                        scaleY:options.scaleY,
+                        width: options.width,
+                        height: options.height,
+                        stroke: options.stroke?options.stroke:'',                              // 边框颜色
+                        strokeWidth: options.strokeWidth?options.strokeWidth:0,                             // 边框宽度
+                        strokeDashArray:options.strokeDashArray?options.strokeDashArray:[0,0],              // 边框样式 虚线 [5,1]     直线[0,0]  线段也是这个参数
+
+                        selectable: options.selectable!==false ? true : options.selectable,                 //元素是否可选中  如段码屏中可见不可移动false
+                        visible: options.visible!==false ? true : options.visible,                          //元素是否可见
+                    });
+                    img.hasControls = true;
+                    img.hasBorders = true;
+
+                    canvas.add(img); // 把图片添加到画布上
+                    that.activecanvaobjs.push(img);   //设置活跃元素
+                    that.activeobj = img;
+                    if (options && options.registeObjectEvent) {
+                        Utils.registeObjectEvent(that, img);
+                    }
+                    img.setCoords();
+                    that.setActiveObject(img);
+                    canvas.renderAll.bind(canvas);
+                    that.setTop();  //遮罩置顶
+
+                    resolve(img);
+
+                });
+
+            });
+
+        },
+        //获取创建二维码的结果
+        createQrcode(options){
+            let that = this;
+            let canvas = this.canvas;
+            return new Promise(function(resolve, reject) {
+                let canvasObject;
+                let qrcodeImg = jrQrcode.getQrBase64(options.imgText, {
+                    padding       :  options.margin?options.margin:2,   // 二维码四边空白（默认为10px）
+                    width         :  options.width?options.width:80,  // 二维码图片宽度（默认为256px）
+                    height        :  options.height?options.height:80,  // 二维码图片高度（默认为256px）
+                    correctLevel  :  QRErrorCorrectLevel.H,    // 二维码容错level（默认为高）
+                    reverse       :  false,        // 反色二维码，二维码颜色为上层容器的背景颜色
+                    background    :  options.background?options.background:"#ffffff",    // 二维码背景颜色（默认白色）
+                    foreground    :  options.lineColor?options.lineColor:"#000000"     // 二维码颜色（默认黑色）
+                });
+                let newimg = document.createElement('img');
+                newimg.src = qrcodeImg;
+                newimg.id =  (new Date()).getTime();
+
+                newimg.onload = ()=>{
+                    canvasObject = new fabric.Image(newimg, {
+                        left: options.left,
+                        top: options.top,
+                        id:options.id,
+                        name:options.name?options.name:'Qrcode',
+                        angle:options.angle,
+                        component:"component",
+                        isType:'Qrcode',
+                        isDiff: 'static',
+                        flipX: false,
+                        flipY: false,
+                        lockSkewingX: true,                  //禁掉按住shift时的变形
+                        lockSkewingY:true,
+                        originX: 'left',
+                        originY: 'top',
+                        lockUniScaling:true,
+                        imgText :options.imgText,
+
+                    });
+                    canvas.add(canvasObject);
+                    that.setActiveObject(canvasObject);
+                    that.setTop();                                         //遮罩置顶
+                    canvas.renderAll();
+                    /* that.activecanvaobjs.push(canvasObject);   //设置活跃元素
+                     that.activeobj = canvasObject;*/
+                    resolve(canvasObject);
+                };
+                newimg.onerror = function() {
+                    reject(new Error('qrcode error load!' ));
+                };
+
+            });
+        },
+        //获取创建条码的结果
+        createBarcode(options){
+            let that = this;
+            let canvas = this.canvas;
+            return new Promise(function(resolve, reject) {
+                let canvasObject;
+                options.imgText = options.imgText ? options.imgText:'barcode123456789';
+                options.barlineWidth = options.barlineWidth ? options.barlineWidth : 1;
+                JsBarcode("#barcode", options.imgText, {
+                    format: options.format?options.format:"CODE128",  //条形码的格式
+                    lineColor:  options.lineColor?options.lineColor:"#000000",  //线条颜色
+                    margin:  options.margin?options.margin:0, // 条码四边空白（默认为10px）
+                    width:  options.barlineWidth, //线宽
+                    height:  options.height?options.height:20,  //条码高度
+                    displayValue: false //是否显示文字信息
+                });
+
+                options.originXY = options.originXY? options.originXY :['left','top'];
+                document.getElementById("barcode").onload = ()=>{
+                    const barcodeIMG = new fabric.Image(document.getElementById('barcode'), {
+
+                        id:options.id,
+                        width:document.getElementById('barcode').width,   //document.getElementById('barcode').width, >options.width?document.getElementById('barcode').width:options.width
+                        height:options.height,
+                        name:options.name?options.name:'barcodeimg',
+                        angle:options.angle,
+                        component:"component",
+                        isType:'barcodeimg',
+                        isDiff: 'static',
+                        flipX: false,
+                        flipY: false,
+                        lockSkewingX: true,                  //禁掉按住shift时的变形
+                        lockSkewingY:true,
+                        scaleX:1,
+                        scaleY:1,
+                        lockScalingX:true,
+                        lockScalingY:true,
+                        lockRotation:true,
+                        imgText :options.imgText,
+
+                    });
+
+                    const rect = new fabric.Rect({
+                        width: options.width,  //document.getElementById('barcode').width>options.width?document.getElementById('barcode').width:
+                        height: options.height,
+                        fill: '#f1edea',
+                        originX: 'center',
+                        originY: 'center',
+                        left:0,
+                        top: 0,
+
+                        name:options.name?options.name:'barcodebg',
+                        angle:options.angle,
+                        component:"component",
+                        isType:'barcodebg',
+                        isDiff: 'static',
+                    });
+
+                    canvasObject = new fabric.Group([rect,barcodeIMG], {
+                        originX: 'left',
+                        originY: 'top',
+                        left: options.left,
+                        top: options.top,
+                        originXY:[options.originXY[0],'top'],
+                        id:options.id,
+
+                        name:options.name?options.name:'Barcode',
+                        angle:options.angle,
+                        component:"component",
+                        isType:'Barcode',
+                        isDiff: 'static',
+                        width:options.width,
+                        height:options.height,
+                        imgText:options.imgText,
+                        barlineWidth:options.barlineWidth,
+
+                        lockRotation:true,
+                        flipX: false,
+                        flipY: false,
+                        lockSkewingX: true,                  //禁掉按住shift时的变形
+                        lockSkewingY:true,
+                    });
 
 
+                    canvas.add(canvasObject);
+                    // console.log(options.originXY[0],options.width,document.getElementById('barcode').width);
+                    let left = 0;
+                    let w = options.width;
+                    let barw = document.getElementById('barcode').width;
+                    if(options.originXY[0]==='left'){
+                        left = w<barw ? Math.abs(barw-w)/2 : - Math.abs(barw-w)/2;
+                    }else if(options.originXY[0]==='center'){
+                        left = 0;
+                    }else if(options.originXY[0]==='right'){
+                        left = w<barw ? - Math.abs(barw-w)/2 : Math.abs(barw-w)/2;
+                    }
+                    canvasObject.item(0).set({
+                        left: '-50%',
+                    });
+                    canvasObject.item(1).set({
+                        top:0,
+                        left: left,
+                    });
+                    that.setActiveObject(canvasObject);
+
+                    that.setTop();                                         //遮罩置顶
+                    canvas.renderAll();
+                    /*that.activecanvaobjs.push(canvasObject);   //设置活跃元素
+                    that.activeobj = canvasObject;*/
+                    resolve(canvasObject);
+
+                }
+                document.getElementById("barcode").onerror = function() {
+                    reject(new Error('barcode error load!' ));
+                };
+            });
+        },
+
+      //改变二维码的图片大小和值
+      changeQrcodeImage(options){
+          if(options.isType!=='Qrcode'){
+              return;
+          }
+          let optionsdata = JSON.parse(JSON.stringify(options));
+          this.removeObj(options);
+
+          let left = optionsdata.left+this.xLeft;
+          let top = optionsdata.top+this.yTop;
+         // console.log('change image:',options.height);
+          this.createElement(options.isType,{
+              ...options,
+              left: left,
+              top:  top,
+              width: parseInt(options.width * options.scaleX),
+              height: parseInt(options.height * options.scaleY),
+              scaleX:1,
+              scaleY:1,
+          });
+      },
+        //改变条码的图片和大小
+      async changeBarcodeImage(options){
+
+           // console.log(options.item(1).width,options.item(1).scaleX,options.width,options.scaleX);
+            let lineWidth = options.barlineWidth;
+            lineWidth =  parseInt(options.barlineWidth * ((options.width*options.scaleX)/(options.item(1).width*options.item(1).scaleX)));
+
+            if(lineWidth===0){
+                lineWidth = 1;
+            }
+            console.log('条码线宽：',lineWidth);
+
+            options.set({
+                width:options.width * options.scaleX,
+                scaleX :1,
+                barlineWidth:lineWidth,
+            });
+            options.item(0).set({
+                width:options.width * options.scaleX,
+                scaleX :1,
+            });
+
+            let newoptions = {
+                format: options.item(1).format ? options.item(1).format : "CODE128",  //条形码的格式
+                lineColor:  "#000000",  //线条颜色
+                margin: 0, // 条码四边空白（默认为10px）
+                lineWidth: lineWidth, //线宽
+                height: options.item(1).height ? options.item(1).height : 20,  //条码高度
+            };
+            let img = await this.drawbarcode(options.imgText,newoptions);
+
+            let left = 0;
+            let w = options.width;
+            let barw = document.getElementById('barcode').width;
+            if(options.originXY[0]==='left'){
+                left = w<barw ? Math.abs(barw-w)/2 : - Math.abs(barw-w)/2;
+            }else if(options.originXY[0]==='center'){
+                left = 0;
+            }else if(options.originXY[0]==='right'){
+                left = w<barw ? - Math.abs(barw-w)/2 : Math.abs(barw-w)/2;
+            }
+
+            options.item(1)._element.src = img;
+            options.item(1).set({
+                left:left,
+                width:options.item(1)._element.width,
+                scaleX:1,
+            });
+
+            this.canvas.requestRenderAll();
+            this.canvas.renderAll();
+
+            this.setZoom(this.canvasZoom + 0.00001);
+
+            //console.log('barcode:',options.item(1)._element,img);
+        },
+
+
+        //刷新渲染页面
+        renderCanvas(){
+            this.canvas.requestRenderAll();
+            this.canvas.renderAll();
+
+            //this.setZoom(this.canvasZoom + 0.00001);
+        },
+
+
+        //预览
+        async todata(){
+            this.discardActive();
+            var dataURL = canvas.toDataURL({
+                format: 'jpeg',
+                multiplier:2,
+            });
+            let newdata = await this.cutImg(dataURL,-this.xLeft,-this.yTop, -this.xLeft + this.width, -this.yTop + this.height);
+            this.$emit('previewshow',newdata);
+        },
+
+        //切割画布
+        cutImg(img,xStart,yStart,xEnd,yEnd){
+            xStart = xStart * this.canvasZoom;
+            yStart = yStart * this.canvasZoom;
+            xEnd = xEnd * this.canvasZoom;
+            yEnd = yEnd * this.canvasZoom;
+            return new Promise(function(resolve, reject) {
+                var dirtyWidth = xEnd - xStart;
+                var dirtyHeight = yEnd - yStart;
+                var nowText = canvas.getContext("2d");//获取2d环境
+                var img1 = new Image();
+                // img1.crossOrigin="anonymous";
+                img1.src = img;
+                var newCanvas = document.createElement("canvas");
+                var newText = newCanvas.getContext("2d");
+
+                img1.onload = function () {
+                    nowText.drawImage(img1, 0, 0, canvas.width, canvas.height);//绘制图像
+                    var imgData = nowText.getImageData(xStart, yStart, dirtyWidth, dirtyHeight);//获取截图画布像素数据
+                    newCanvas.width = dirtyWidth;
+                    newCanvas.height = dirtyHeight;
+                    newText.putImageData(imgData, 0, 0, 0, 0, newCanvas.width, newCanvas.height);//将截取的图像放回画布上
+                    var imgUrl = newCanvas.toDataURL("image/png");//将图片转为dataURL(base64);
+                    resolve(imgUrl);
+                };
+                img1.onerror = function() {
+                    reject(new Error('Could not load image at ' ));
+                };
+
+            });
+        },
+
+        /**
+         * 根据字，字体，字号画图，计算边距变形整体缩放
+         *
+         *
+         * */
+        getFontImgdata(text,fontFamily,fontSize,scaleX,scaleY){
+           /* console.log(text,fontFamily,fontSize,scaleX,scaleY)
+            console.warn('getFontImgdata....');*/
+
+           let result =  new Promise(function(resolve,reject){
+               let ncanvas = new fabric.Canvas('fontcanvas', { preserveObjectStacking: true });
+              /* fabric.Object.prototype.originX = 'left';  //设置中心为左上角
+               fabric.Object.prototype.originY = 'top';*/
+
+               let textdaemo = new fabric.Text(text, {
+                   fill:'#ff0',
+                   splitByGrapheme: true,
+                   lockScalingFlip:true,
+                   fontFamily:fontFamily,
+                   fontSize:fontSize,
+                   originX:'left',
+                   originY:'top',
+                   scaleX:scaleX,
+                   scaleY:scaleY,
+               });
+
+                /*const rect1 = new fabric.Rect({
+                    lockScalingFlip:true,
+                });
+                const text1 = new fabric.Text(text, {
+                    fill:'#ff0',
+                    splitByGrapheme: true,
+                    lockScalingFlip:true,
+                    fontFamily:fontFamily,
+                    fontSize:fontSize,
+
+                    scaleX:scaleX,
+                    scaleY:scaleY,
+
+                });
+                let textdaemo = new fabric.Group([rect1,text1], {
+                    width:text1.width,
+                    height:text1.height,
+                    originX:'left',
+                    originY:'top',
+                    flipX: false,
+                    flipY: false,
+                    lockSkewingX: true,                  //禁掉按住shift时的变形
+                    lockSkewingY:true,
+                    lockUniScaling:true,
+                    id:0,
+                    left: 0,
+                    top: 0,
+                    angle:0,
+                    isElasticSize:1,
+
+
+
+                    clipTo:function(ctx) {
+                        ctx.rect(-text1.width*scaleX/2,-text1.height*scaleY/2,text1.width*scaleX,text1.height*scaleY);
+                    }
+                });
+                textdaemo.item(0).set({'width':text1.width*scaleX, 'height':textdaemo.height*scaleY,});
+                textdaemo.item(1).set({'width':text1.width, 'height':text1.height,});*/
+
+               ncanvas.setWidth(textdaemo.width*scaleX);
+               ncanvas.setHeight(textdaemo.height*scaleY);
+
+               ncanvas.backgroundColor ='#000';
+
+
+               textdaemo.set({
+                   left : 0,
+                   top : 0,
+               });
+
+               textdaemo.setCoords();
+
+               ncanvas.add(textdaemo);
+               ncanvas.requestRenderAll();
+               ncanvas.renderAll();
+
+               let ctxcontent = ncanvas.getContext("2d");
+
+               var data = ctxcontent.getImageData(0,0,textdaemo.width*scaleX,textdaemo.height*scaleY).data;
+               let morew = ctxcontent.getImageData(0,0,textdaemo.width*scaleX,textdaemo.height*scaleY).width;
+               let moreh = ctxcontent.getImageData(0,0,textdaemo.width*scaleX,textdaemo.height*scaleY).height;
+
+               let coor = [];
+               let fontw = [];
+               let fonth = [];
+               for(let j =0;j<2;j++){
+                   coor[j] = [];
+               }
+               let realdata = [];
+               for(let i=0,len=data.length;i<len;i+=4){
+                   let red = data[i],
+                       green=data[i+1],
+                       blue=data[i+2],
+                       alpha= data[i+3];
+                   if(`${red} ${green} ${blue}` === '0 0 0'){
+                       realdata.push(0);
+                   }else{
+                       realdata.push(1);
+                   }
+               }
+
+               //计算二维图像
+               let lines = [];
+               for(var l=0;l<realdata.length;l+=morew){
+                   lines[l/morew]=[];
+                   for(var m=0;m<morew;m++){
+                       lines[l/morew][m] = realdata[l+m];
+                       if( realdata[l+m]===1){
+                           fonth.push(parseInt(l/morew));
+                           fontw.push(m)
+                       }
+                   }
+               }
+               //生成base64图像
+               let dataUrl = ncanvas.toDataURL({
+                   format: 'jpeg',
+                   multiplier:1,
+               });
+              // console.log(dataUrl);
+
+               //计算宽高
+               //console.log(fontw,fonth,morew,moreh);
+
+               let w = new Set(fontw);
+               let neww = Array.from(w); //去重
+               let neww2 = neww.sort(function(a,b){return a-b;}); //从小到大排列
+               let truefontwidth =neww2[neww2.length-1]-neww2[0]+1;
+
+               let h = new Set(fonth);
+               let newh = Array.from(h);//去重
+               let newh2 = newh.sort(function(a,b){return a-b;}); //从小到大排列
+               let truefontheight =newh2[newh2.length-1]-newh2[0]+1;
+
+               let returndata = {
+                   offset:[neww2[0]-0, morew-neww2[neww2.length-1]-1, newh2[0]-0, moreh-newh2[newh2.length-1]-1 ],
+                   fontwidth:truefontwidth,
+                   fontheight:truefontheight,
+                   fontSize:fontSize,
+                   width:morew,
+                   height:moreh,
+                   url:dataUrl,
+                   lines:lines,
+               };
+               let img = new Image();
+               img.src = dataUrl;
+               img.onload = () => {resolve(returndata)};
+           });
+
+           return result;
+
+
+
+
+
+
+        },
 
       /**
        * 创建矩形√、 圆角矩形 、平行四边形
@@ -1730,7 +2814,7 @@
           fill: options.fill?options.fill:'#000',                                            // 填充的颜色（矩形）
           fillColor: options.fillColor?options.fillColor:'#000',                              // 填充的颜色
 
-          backgroundColor: options.backgroundColor?options.backgroundColor:'rgba(0,0,0,0)',   // 边框填充的颜色
+          backgroundColor: options.backgroundColor?options.backgroundColor:'#000000',   // 边框填充的颜色
           stroke: options.stroke?options.stroke:'rgba(0,0,0,0)',                              // 边框颜色
           strokeWidth: options.strokeWidth?options.strokeWidth:0,                             // 边框宽度
           strokeDashArray:options.strokeDashArray?options.strokeDashArray:[0,0],                    // 边框样式 虚线 [5,1]     直线[0,0]
@@ -1757,8 +2841,11 @@
         options = Object.assign({width: 50, height: 30, left: -this.xLeft, top:  -this.yTop,  padding: 0, angle: 0, scaleX: 1,  scaleY: 1, }, options);
         var canvasObj = new fabric.Textbox(text, {
             ...options,
-            left: -this.xLeft + options.left,
-            top:  -this.yTop + options.top,
+            splitByGrapheme:  true,
+            width: options.width,
+            height: options.height,
+            left: options.left,
+            top: options.top,
             id:options.id,
             name:options.name?options.name:'Text',
             component:"component",
@@ -1787,6 +2874,11 @@
           lockSkewingY:true,
             stopContextMenu: true,                            //禁掉鼠标右键默认事件
         });
+       /* let topdata = {
+                size:      1.13, // fontSize factor
+                baseline: 0.5  // baseline-shift factor (upwards)
+            };
+          canvasObj._setScript(0, 10, topdata);*/
           canvasObj.setCoords();
           this.canvas.add(canvasObj);
           this.setTop();  //遮罩置顶
@@ -1794,150 +2886,98 @@
           return canvasObj;
       },
 
+        //创建文本
+        createText2 (text, options) {
+            options = Object.assign({width: 50, height: 30, left: -this.xLeft, top:  -this.yTop,  padding: 0, angle: 0, scaleX: 1,  scaleY: 1, }, options);
+            var canvasObj = new fabric.Textbox(text, {
+                ...options,
+                left: -this.xLeft + options.left,
+                top:  -this.yTop + options.top,
+                id:options.id,
+                name:options.name?options.name:'Text',
+                component:"component",
+                isType:'Text',
+                isDiff: 'static',
+                textAlign: 'left',
 
-        //创建图片
-      createImage (url, options) {
-        let canvas = this.canvas;
-        let that = this;
-        fabric.Image.fromURL(url, function (img) {
-          let maxWidth = that.width / 2;
-          let width = 0;
-          let height = 0;
-          if (img.width > img.height) {
-            if (img.width > maxWidth) {
-              width = maxWidth;
-              height = (img.height / img.width) * width;
-            } else {
-              width = img.width;
-              height = img.height;
-            }
-          } else {
-            if (img.height > maxWidth) {
-              height = maxWidth;
-              width = (img.width / img.height) * height;
-            } else {
-              width = img.width;
-              height = img.height;
-            }
-          }
-          if (options && options.width) {
-            width = options.width;
-          }
-          if (options && options.height) {
-            height = options.height;
-          }
-          let leftP = that.width / 2;
-          let topP = that.height / 2;
-          if (options && options.left || (options && options.left===0)) {
-            leftP = options.left;
-          }
-          if (options && options.top || (options && options.top===0)) {
-            topP = options.top;
-          }
-          img.set({
-            id: options.id ? options.id : 'image',
-            name:options.name?options.name:'Image',
-            component:"component",
-            isType:'Image',
-            isDiff: 'static',
-            left: leftP,
-            top: topP,
-            scaleX: width / img.width,
-            scaleY: height / img.height,
-            originX: 'left',
-            originY: 'top',
-            angle:0,
-            lockSkewingX: true,                  //禁掉按住shift时的变形
-            lockSkewingY:true,
+                selectable: options.selectable!==false ? true : options.selectable,                 //元素是否可选中
+                visible: options.visible!==false ? true : options.visible,                          //元素是否可见
 
-          });
+                fill: options.fill?options.fill:'#000',                                            // 填充的颜色（矩形）
+                fillColor: options.fillColor?options.fillColor:'#000',                              // 填充的颜色
 
-          var oldOriginX = img.get('originX');
-          var oldOriginY = img.get('originY');
-          var center = img.getCenterPoint();
-          img.hasControls = true;
-          img.hasBorders = true;
+                backgroundColor: options.backgroundColor?options.backgroundColor:'rgba(0,0,0,0)',   // 边框填充的颜色
+                stroke: options.stroke?options.stroke:'rgba(0,0,0,0)',                              // 边框颜色
+                strokeWidth: options.strokeWidth?options.strokeWidth:0,                             // 边框宽度
+                strokeDashArray:options.strokeDashArray?options.strokeDashArray:[0,0],                    // 边框样式 虚线 [5,1]     直线[0,0]
 
-          canvas.add(img); // 把图片添加到画布上
-          if (options && options.registeObjectEvent) {
-            Utils.registeObjectEvent(that, img);
-          }
-          canvas.renderAll.bind(canvas);
-          that.setTop();  //遮罩置顶
-        });
+                minScaleLimit: 0.0001,                            //  最小限制
 
+                flipX: false,
+                flipY: false,
+                originX: 'left',
+                originY: 'top',
+                lockSkewingX: true,                  //禁掉按住shift时的变形
+                lockSkewingY:true,
+                stopContextMenu: true,                            //禁掉鼠标右键默认事件
+            });
+            canvasObj.setCoords();
+            this.canvas.add(canvasObj);
+            this.setTop();  //遮罩置顶
+            this.canvas.renderAll();
+            return canvasObj;
+        },
+
+      //返回灰边框边距
+      returnXY(){
+          return {x:this.xLeft,y:this.yTop};
       },
 
-      //创建二维码
-      createQrcode (url, options) {
-        let canvas = this.canvas;
-        let that = this;
-
-        this.drawqrcode(url,{});
-
-        var qrcodedata = document.getElementById('qrcode');
-        console.log(qrcodedata);
-
-        setTimeout(()=>{
-          var canvasObject = new fabric.Image(qrcodedata, {
-            left: -this.xLeft + options.left,
-            top:  -this.yTop + options.top,
-            id:options.id,
-            name:options.name?options.name:'Qrcode',
-            component:"component",
-            isType:'Qrcode',
-            isDiff: 'static',
-            flipX: false,
-            flipY: false,
-            lockSkewingX: true,                  //禁掉按住shift时的变形
-            lockSkewingY:true,
-            originX: 'left',
-            originY: 'top',
-            lockUniScaling:true,
-
-          });
-          canvas.add(canvasObject);
-          canvas.renderAll.bind(canvas);
-          that.setTop();  //遮罩置顶
-
-        },1000);
-
+      //设置画布上元素禁止选中
+      setCompunentsNoselect(){
+          let objects = this.getObjects();
+          for(let i in objects){
+              if(objects[i].component === 'component'){
+                  objects[i].set('selectable',false);
+                  this.canvas.requestRenderAll();
+                  this.canvas.renderAll();
+              }
+          }
       },
 
-      //创建条码
-      createBarcode (url, options) {
-        let canvas = this.canvas;
-        let that = this;
-
-        this.drawbarcode(url,{});
-
-        var barcodedata = document.getElementById('barcode');
-        console.log(barcodedata);
-
-        setTimeout(()=>{
-          var canvasObject = new fabric.Image(barcodedata, {
-            left: -this.xLeft + options.left,
-            top:  -this.yTop + options.top,
-            id:options.id,
-            name:options.name?options.name:'Qrcode',
-            component:"component",
-            isType:'Qrcode',
-            isDiff: 'static',
-            flipX: false,
-            flipY: false,
-            lockSkewingX: true,                  //禁掉按住shift时的变形
-            lockSkewingY:true,
-            originX: 'left',
-            originY: 'top',
-
-          });
-          canvas.add(canvasObject);
-          canvas.renderAll.bind(canvas);
-          that.setTop();  //遮罩置顶
-
-        },1000);
-
+      //取消上面禁止选中
+      setCompunentsCanselect(){
+          let objects = this.getObjects();
+          for(let i in objects){
+              if(objects[i].component === 'component' &&  objects[i].visible!==false){
+                  objects[i].set('selectable',true);
+                  this.canvas.requestRenderAll();
+                  this.canvas.renderAll();
+              }
+          }
       },
+
+
+
+      //设置鼠标手
+      setCursor(status){
+          if(status == 1){
+          fabric.Canvas.prototype.defaultCursor = "url('data:image/ico;base64,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AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADW1tZ4b29v/7Gxsf+hoaHn////IAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAANbW1nhvb2//sbGx/6Ghoef///8gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA9vb2LJeXl8VpaWnzx8fHif///wIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD///8G/v7+LP///0z///8YAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////5////8P///+B////Af///gH///wD///4B///8A///+Af///AP///gH///wD///4B///8A///OAf//xgP//8QH///ED///xD///8b////H///gAB//4AAP/+AAD///h////8f////H////x////8f////H////x////////8=') ,auto";
+          }else{
+              fabric.Canvas.prototype.defaultCursor = 'default';
+          }
+      },
+
+        //获取当前画布的缩放比例
+        getZoom(){
+          let zoom = this.canvas.getZoom();
+          return zoom;
+
+        },
+
+
+
+
 
 
     }
@@ -1945,6 +2985,8 @@
 </script>
 
 <style scoped lang="scss">
+
+
   .bigbox{
       position:relative;
       /*border: 1px solid #ddd;*/

@@ -9557,14 +9557,14 @@ fabric.PatternBrush = fabric.util.createClass(fabric.PencilBrush, /** @lends fab
          * @type String
          * @default
          */
-        moveCursor:             'move',
+        moveCursor:             'move',  //
 
         /**
          * Default cursor value used for the entire canvas
          * @type String
          * @default
          */
-        defaultCursor:          'default',
+        defaultCursor:         'default',   // 'default'
 
         /**
          * Cursor value used during free drawing
@@ -10298,8 +10298,11 @@ fabric.PatternBrush = fabric.util.createClass(fabric.PencilBrush, /** @lends fab
                 return false;
             }
 
+
+
             //console.log('scaleing:',by,target,target  instanceof fabric.Group);
-            if(fabric.Group &&  by === 'equally' &&target instanceof fabric.Group && target.type==='isTanText'){
+
+            if(fabric.Group &&  by === 'equally' &&target instanceof fabric.Group && target.isType==='Text'){
                 var w = target.width * (localMouse.x / _dim.x);
                 var h = target.height * (localMouse.y / _dim.y);
                 if (w !== target.width && w!==0 ) {
@@ -10312,7 +10315,7 @@ fabric.PatternBrush = fabric.util.createClass(fabric.PencilBrush, /** @lends fab
                     target._objects[0].set('left', -w/2);
                     target._objects[0].set('top',-h/2);
 
-                    target._objects[1].set('textBackgroundColor', '#ff0');
+                   // target._objects[1].set('textBackgroundColor', '#ff0');
                     target._objects[1].set('textAlign', 'left');
                    // target._objects[1].set('backgroundColor', '#eee');
                     target._objects[1].set('width', w);
@@ -10328,34 +10331,47 @@ fabric.PatternBrush = fabric.util.createClass(fabric.PencilBrush, /** @lends fab
                 }
                 return false;
             }
-            if(fabric.Group &&  by === 'x' &&target instanceof fabric.Group && target.type==='isTanText'){
+            if(fabric.Group &&  by === 'x' &&target instanceof fabric.Group && target.isType==='Text'){
                 var w = target.width * (localMouse.x / _dim.x);
                 var h = target.height * (localMouse.y / _dim.y);
                 if (w !== target.width && w!==0) {
+
                     scaled = w !== target.width;
                     target.set('width', w);
                     target.set('height', target.height);
+
+
+
                     target._objects[0].set('width', w);
                     target._objects[0].set('height', target.height);
                     target._objects[0].set('left', -w/2);
                     target._objects[0].set('top',-target.height/2);
+                  //  target._objects[0].set('scaleX', w*scaleX);
+                   // target._objects[0].set('scaleY', scaleY);
+                    target._objects[0].set('fill', '#eee');
 
                     target._objects[1].set('textBackgroundColor', '#ff0');
                     target._objects[1].set('textAlign', 'left');
-                  //  target._objects[1].set('backgroundColor', '#eee');
+
+                    //target._objects[1].set('backgroundColor', '#eee');
+
                     target._objects[1].set('width', w);
                     target._objects[1].set('height',  target.height);
                     target._objects[1].set('top', -target.height/2);
                     target._objects[1].set('left', -target.width/2 );
 
                     target.clipTo = (ctx)=>{
+                        /* ctx.lineWidth="4";
+                         ctx.strokeStyle="green";*/
                         ctx.rect(-target.width/2,-target.height/2,target.width,target.height);
-                    }
+                        ctx.stroke();
+                    };
+                    console.log( 'w2,' ,target.width,w);
                     return scaled;
                 }
                 return false;
             }
-            if(fabric.Group &&  by === 'y' &&target instanceof fabric.Group && target.type==='isTanText'){
+            if(fabric.Group &&  by === 'y' &&target instanceof fabric.Group && target.isType==='Text'){
                 var w = target.width * (localMouse.x / _dim.x);
                 var h = target.height * (localMouse.y / _dim.y);
                 if (h !== target.height && h!==0) {
@@ -10367,7 +10383,7 @@ fabric.PatternBrush = fabric.util.createClass(fabric.PencilBrush, /** @lends fab
                     target._objects[0].set('left', -target.width/2);
                     target._objects[0].set('top',-h/2);
 
-                    target._objects[1].set('textBackgroundColor', '#ff0');
+                   // target._objects[1].set('textBackgroundColor', '#ff0');
                     target._objects[1].set('textAlign', 'left');
                   //  target._objects[1].set('backgroundColor', '#eee');
                     target._objects[1].set('width', target.width);
@@ -10571,7 +10587,7 @@ fabric.PatternBrush = fabric.util.createClass(fabric.PencilBrush, /** @lends fab
 
         /**
          * Set the cursor type of the canvas element
-         * @param {String} value Cursor type of the canvas element.
+         * @param {String} value Cursor type of tdefaultCursorhe canvas element.
          * @see http://www.w3.org/TR/css3-ui/#cursor
          */
         setCursor: function (value) {
@@ -12167,7 +12183,7 @@ fabric.PatternBrush = fabric.util.createClass(fabric.PencilBrush, /** @lends fab
                 (actionPerformed = this._onScale(e, transform, x, y)) && this._fire('scaling', options);
             }
             else if (action === 'scaleX') {
-              console.log(this._scaleObject(x, y, 'x') , this._fire('scaling', options));
+            //  console.log(this._scaleObject(x, y, 'x') , this._fire('scaling', options));
                 (actionPerformed = this._scaleObject(x, y, 'x')) && this._fire('scaling', options);
             }
             else if (action === 'scaleY') {
@@ -13049,7 +13065,7 @@ fabric.util.object.extend(fabric.StaticCanvas.prototype, /** @lends fabric.Stati
          * @type String
          * @default
          */
-        hoverCursor:              null,
+        hoverCursor:              null, // happy change null
 
         /**
          * Default cursor value used when moving this object on canvas
@@ -13759,7 +13775,15 @@ fabric.util.object.extend(fabric.StaticCanvas.prototype, /** @lends fabric.Stati
                     component:                this.component,
                     isType:                   this.isType,
                     isDiff:                   this.isDiff,
+                    imgText:                  this.imgText,
+                    barlineWidth:             this.barlineWidth,  // 条码线宽
+                    DottedlineType:           this.DottedlineType, // 线段类型 0 直线  1虚线  2 短长线
+                    originXY:                   this.originXY,  // [x(left,center,right),y(top,center,bottom)]
+                    textback:                   this.textback,
+                    textcolor:                  this.textcolor,
+                    textdemo:                   this.textdemo,
                 };
+
 
             if (this.clipPath) {
                 object.clipPath = this.clipPath.toObject(propertiesToInclude);
@@ -25023,7 +25047,7 @@ fabric.Image.filters.BaseFilter.fromObject = function(object, callback) {
          * @type String
          * @default
          */
-        fontFamily:           'Times New Roman',
+        fontFamily:           'Microsoft YaHei',   //Times New Roman   Microsoft YaHei   Happy Phantom
 
         /**
          * Text decoration underline.
@@ -25074,7 +25098,7 @@ fabric.Image.filters.BaseFilter.fromObject = function(object, callback) {
          * @type Number
          * @default
          */
-        lineHeight:           1.1, //happy change 1.16
+        lineHeight:          1, //happy change 1.16
 
         /**
          * Superscript schema object (minimum overlap)
@@ -25162,7 +25186,7 @@ fabric.Image.filters.BaseFilter.fromObject = function(object, callback) {
         /**
          * @private
          */
-        _fontSizeFraction: 0.22,   //happy change 0.222
+        _fontSizeFraction: 0.2,   //happy change 0.222
 
         /**
          * @private
@@ -25178,7 +25202,7 @@ fabric.Image.filters.BaseFilter.fromObject = function(object, callback) {
          * @type Number
          * @default
          */
-        _fontSizeMult:            1.03,  //happy change 1.13
+        _fontSizeMult:           1.13,  //happy change 1.13
 
         /**
          * additional space between characters
@@ -25292,6 +25316,7 @@ fabric.Image.filters.BaseFilter.fromObject = function(object, callback) {
          * Divides text into lines of text and lines of graphemes.
          */
         _splitText: function() {
+           // console.warn('newLines:',newLines);
             var newLines = this._splitTextIntoLines(this.text);
             this.textLines = newLines.lines;
             this._textLines = newLines.graphemeLines;
@@ -25522,7 +25547,7 @@ fabric.Image.filters.BaseFilter.fromObject = function(object, callback) {
                     }
                 }
                 if (currentColor) {
-                    ctx.fillStyle = currentColor;
+                    ctx.fillStyle = currentColor;  //文本背景
                     ctx.fillRect(
                         leftOffset + lineLeftOffset + boxStart,
                         topOffset + lineTopOffset,
@@ -25704,7 +25729,7 @@ fabric.Image.filters.BaseFilter.fromObject = function(object, callback) {
             var box = {
                 width: width,
                 left: 0,
-                height: style.fontSize,
+                height: style.fontSize,  // 是不是文本矩形框
                 kernedWidth: kernedWidth,
                 deltaY: style.deltaY,
             };
@@ -25755,7 +25780,7 @@ fabric.Image.filters.BaseFilter.fromObject = function(object, callback) {
          * @return {Number} Left offset
          */
         _getLeftOffset: function() {
-            return -this.width / 2;    //happy change -this.width / 2
+            return -this.width / 2 ;    //happy change -this.width / 2
         },
 
         /**
@@ -26391,6 +26416,7 @@ fabric.Image.filters.BaseFilter.fromObject = function(object, callback) {
         if (parsedAnchor === 'right') {
             offX = text.getScaledWidth();
         }
+
         text.set({
             left: text.left - offX,
             top: text.top - (textHeight - text.fontSize * (0.07 + text._fontSizeFraction)) / text.lineHeight,
@@ -26850,7 +26876,7 @@ fabric.Image.filters.BaseFilter.fromObject = function(object, callback) {
          * @type String 'rgba(102,153,255,0.25)'
          * @default
          */
-        editingBorderColor: 'rgba(255,128,0,1)',  //happy change bordercolor rgba(102,153,255,0.25)
+        editingBorderColor: 'rgba(0,98,178,0.8)',  //happy change bordercolor rgba(102,153,255,0.25)
 
         /**
          * Width of cursor (in px)
@@ -30281,6 +30307,7 @@ fabric.util.object.extend(fabric.IText.prototype, /** @lends fabric.IText.protot
         }
     });
 
+
     /**
      * Returns fabric.TextboxNew instance from an object representation
      * @static
@@ -30292,6 +30319,121 @@ fabric.util.object.extend(fabric.IText.prototype, /** @lends fabric.IText.protot
         return fabric.Object._fromObject('TextboxNew', object, callback, 'text');
     };
 })(typeof exports !== 'undefined' ? exports : this);
+
+
+
+(function(global) {
+
+    'use strict';
+
+    var fabric = global.fabric || (global.fabric = {});
+
+    fabric.RectWithText = fabric.util.createClass(fabric.Rect, {
+        type: 'rectWithText',
+        text: null,
+        textOffsetLeft: 0,
+        textOffsetTop: 0,
+        _prevObjectStacking: null,
+        _prevAngle: 0,
+        _wordJoiners:'b',
+
+        recalcTextPosition: function () {
+
+            const sin = Math.sin(fabric.util.degreesToRadians(this.angle));
+            const cos = Math.cos(fabric.util.degreesToRadians(this.angle));
+            const newTop = sin * this.textOffsetLeft + cos * this.textOffsetTop;
+            const newLeft = cos * this.textOffsetLeft - sin * this.textOffsetTop;
+            const rectLeftTop = this.getPointByOrigin('left', 'top');
+            console.log(this.textOffsetTop, this.text.xLeft);
+
+            this.text.set('left', rectLeftTop.x + newTop +this.text.xLeft);
+            this.text.set('top', rectLeftTop.y +newLeft +this.text.yTop);
+            this.text.set('width', parseInt(this.width*this.scaleX - this.text.xLeft - this.text.xRight));
+            this.text.set('height', parseInt(this.height*this.scaleY  - this.text.yTop - this.text.yBot));
+
+
+        },
+
+        initialize: function (rectOptions, textOptions, text) {
+            this.callSuper('initialize', rectOptions)
+            this.text = new fabric.Textbox(text, {
+                ...textOptions,
+                splitByGrapheme:  true,
+                selectable: false,
+                evented: false,
+                clipTo: function(ctx) {
+                    ctx.rect(-this.width/2,-this.height/2,this.width,this.height);
+                }
+            });
+
+            this.textOffsetLeft = this.text.left - this.left ;
+            this.textOffsetTop = this.text.top - this.top ;
+
+            this.on('moving', () => {
+                this.recalcTextPosition()
+            });
+            this.on('rotating', () => {
+                this.text.rotate(this.text.angle + this.angle - this._prevAngle)
+                this.recalcTextPosition()
+                this._prevAngle = this.angle
+            });
+            this.on('scaling', (e) => {
+                this.recalcTextPosition();
+                this.text.set('width', parseInt(this.width*this.scaleX - this.text.xLeft - this.text.xRight));
+                this.text.set('height', parseInt(this.height*this.scaleY  - this.text.yTop - this.text.yBot));
+            });
+            this.on('scaled', (e) => {
+                this.set('width', parseInt(this.width*e.target.scaleX));
+                this.set('height', parseInt(this.height*e.target.scaleY));
+                this.set('scaleX', 1);
+                this.set('scaleY', 1);
+            });
+            this.on('added', () => {
+                this.canvas.add(this.text)
+            });
+            this.on('removed', () => {
+                this.canvas.remove(this.text)
+            });
+            this.on('mousedown:before', () => {
+                this._prevObjectStacking = this.canvas.preserveObjectStacking
+                this.canvas.preserveObjectStacking = true
+            });
+            this.on('mousedblclick', () => {
+                this.text.selectable = true
+                this.text.evented = true
+                this.canvas.setActiveObject(this.text)
+                this.text.enterEditing()
+                this.selectable = false
+            });
+            this.on('deselected', () => {
+                this.canvas.preserveObjectStacking = this._prevObjectStacking
+            });
+            this.text.on('editing:entered',(e)=>{
+
+                this.text.set('width', parseInt(this.width*this.scaleX - this.text.xLeft - this.text.xRight));
+                this.text.set('height', parseInt(this.height*this.scaleY  - this.text.yTop - this.text.yBot));
+            });
+            this.text.on('changed',(e)=>{
+                this.text.set('width', parseInt(this.width*this.scaleX - this.text.xLeft - this.text.xRight));
+                this.text.set('height', parseInt(this.height*this.scaleY  - this.text.yTop - this.text.yBot));
+            });
+            this.text.on('editing:exited', () => {
+                this.text.selectable = false
+                this.text.evented = false
+                this.selectable = true
+            })
+        }
+    })
+
+    fabric.RectWithText.fromObject = function(object, callback) {
+        return fabric.Object._fromObject('RectWithText', object, callback, 'text');
+    };
+})(typeof exports !== 'undefined' ? exports : this);
+
+
+
+
+
 
 /**
  * canvas 绘制标尺
@@ -30460,6 +30602,9 @@ CanvasRuler.prototype = {
          ctx.clearRect(50,50,50,50);
          ctx.strokeRect(65,65,20,20);*/
     }
+
+
+
 
 }
 

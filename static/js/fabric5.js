@@ -27109,7 +27109,7 @@ fabric.Image.filters.BaseFilter.fromObject = function(object, callback) {
                 if (this.lineHeight < 1 || (i === endLine && this.lineHeight > 1)) {
                     lineHeight /= this.lineHeight;
                 }
-                console.log('lineHeight：',lineHeight);  // happy change
+              //  console.log('lineHeight：',lineHeight);  // happy change
 
                 if (this.inCompositionMode) {
                     ctx.fillStyle = this.compositionColor || 'black';

@@ -13,7 +13,8 @@
           <div class="components">
 
             <!--文本-->
-            <div class="oneComponent" @click="addCom('TextRect',{width:150,height:50,fill:'#000',fontColor:'#FFF',stroke:'#f00',strokeWidth: 2,
+            <div class="oneComponent" @click="addCom('TextRect',{width:250,height:100,fill:'#fff',fontColor:'#000',stroke:'#f00',strokeWidth: 2,
+            xLeft:10,yTop:20,xRight:30,yBot:40,
             fontSize:30,textdemo:'abcdefg',originXY:['right','bottom']})">
               <div class="iconfont icon-wenben"></div>
             </div>
@@ -151,15 +152,16 @@
       idAdd() {
         this.id = this.id + 1;
       },
-      //预览
-      preview(data){
-          this.img = data;
-      },
       //获取左上距原点距离
       setlefttop(x,y){
         this.originx = x;
         this.originy = y;
       },
+      //预览
+      preview(data){
+          this.img = data;
+      },
+
 
 
       //预览框开关

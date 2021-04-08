@@ -1,7 +1,7 @@
 {
   "name": "vuefabric2020",
   "version": "0.0.1",
-  "author": "zhouzhenhan (周振晗) <3150967536@qq.com>",
+  "author": "zhouzhenhan <3150967536@qq.com> (周振晗)",
   "description": "vue fabric components",
   "keywords": [
     "vue-fabric",
@@ -16,7 +16,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/purestart/vue-fabric.git"
+    "url": "git+https://github.com/purestart/vue-fabric.git"
   },
   "private": false,
   "main": "dist/vue-fabric.min.js",

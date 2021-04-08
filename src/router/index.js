@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import Router from 'vue-router';
 import index from '@/examples/index';
+import index2 from '@/examples/index2';
 import demo001 from '@/examples/ruler-test001';
 import testv001 from '@/examples/testv001';
 import testv002 from '@/examples/testv002';
@@ -41,6 +42,11 @@ const router= new Router({
       name: 'index',
       component: index      //首页
     },
+      {
+          path: '/index2',
+          name: 'index2',
+          component: index2      //测试画布
+      },
     {
       path: '/demo001',
       name: 'demo001',

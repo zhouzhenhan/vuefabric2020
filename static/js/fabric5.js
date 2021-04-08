@@ -10297,107 +10297,9 @@ fabric.PatternBrush = fabric.util.createClass(fabric.PencilBrush, /** @lends fab
 
                 return false;
             }
+            //console.log('w2 scaleing:',by,target,target  instanceof fabric.Group);
 
 
-
-            //console.log('scaleing:',by,target,target  instanceof fabric.Group);
-
-            if(fabric.Group &&  by === 'equally' &&target instanceof fabric.Group && target.isType==='Text'){
-                var w = target.width * (localMouse.x / _dim.x);
-                var h = target.height * (localMouse.y / _dim.y);
-                if (w !== target.width && w!==0 ) {
-                    scaled = w !== target.width;
-                    target.set('width', w);
-                    target.set('height', h);
-
-                    target._objects[0].set('width', w);
-                    target._objects[0].set('height', h);
-                    target._objects[0].set('left', -w/2);
-                    target._objects[0].set('top',-h/2);
-
-                   // target._objects[1].set('textBackgroundColor', '#ff0');
-                    target._objects[1].set('textAlign', 'left');
-                   // target._objects[1].set('backgroundColor', '#eee');
-                    target._objects[1].set('width', w);
-                    target._objects[1].set('height', h);
-                    target._objects[1].set('top', -h + target._objects[1].height/2);
-                    target._objects[1].set('left', -target.width/2 );
-
-                    target.clipTo = (ctx)=>{
-                        ctx.rect(-target.width/2,-target.height/2,target.width,target.height);
-                    }
-                    console.log( 'w,' ,target.width,w);
-                    return scaled;
-                }
-                return false;
-            }
-            if(fabric.Group &&  by === 'x' &&target instanceof fabric.Group && target.isType==='Text'){
-                var w = target.width * (localMouse.x / _dim.x);
-                var h = target.height * (localMouse.y / _dim.y);
-                if (w !== target.width && w!==0) {
-
-                    scaled = w !== target.width;
-                    target.set('width', w);
-                    target.set('height', target.height);
-
-
-
-                    target._objects[0].set('width', w);
-                    target._objects[0].set('height', target.height);
-                    target._objects[0].set('left', -w/2);
-                    target._objects[0].set('top',-target.height/2);
-                  //  target._objects[0].set('scaleX', w*scaleX);
-                   // target._objects[0].set('scaleY', scaleY);
-                    target._objects[0].set('fill', '#eee');
-
-                    target._objects[1].set('textBackgroundColor', '#ff0');
-                    target._objects[1].set('textAlign', 'left');
-
-                    //target._objects[1].set('backgroundColor', '#eee');
-
-                    target._objects[1].set('width', w);
-                    target._objects[1].set('height',  target.height);
-                    target._objects[1].set('top', -target.height/2);
-                    target._objects[1].set('left', -target.width/2 );
-
-                    target.clipTo = (ctx)=>{
-                        /* ctx.lineWidth="4";
-                         ctx.strokeStyle="green";*/
-                        ctx.rect(-target.width/2,-target.height/2,target.width,target.height);
-                        ctx.stroke();
-                    };
-                    console.log( 'w2,' ,target.width,w);
-                    return scaled;
-                }
-                return false;
-            }
-            if(fabric.Group &&  by === 'y' &&target instanceof fabric.Group && target.isType==='Text'){
-                var w = target.width * (localMouse.x / _dim.x);
-                var h = target.height * (localMouse.y / _dim.y);
-                if (h !== target.height && h!==0) {
-                    scaled = h !== target.height;
-                    target.set('width', target.width);
-                    target.set('height', h);
-                    target._objects[0].set('width', target.width);
-                    target._objects[0].set('height', h);
-                    target._objects[0].set('left', -target.width/2);
-                    target._objects[0].set('top',-h/2);
-
-                   // target._objects[1].set('textBackgroundColor', '#ff0');
-                    target._objects[1].set('textAlign', 'left');
-                  //  target._objects[1].set('backgroundColor', '#eee');
-                    target._objects[1].set('width', target.width);
-                    target._objects[1].set('height', h);
-                    target._objects[1].set('top', -h + target._objects[1].height/2);
-                    target._objects[1].set('left', -target.width/2 );
-
-                    target.clipTo = (ctx)=>{
-                        ctx.rect(-target.width/2,-target.height/2,target.width,target.height);
-                    }
-                    return scaled;
-                }
-                return false;
-            }
 
 
            // debugger  happy change writebox
@@ -13780,7 +13682,8 @@ fabric.util.object.extend(fabric.StaticCanvas.prototype, /** @lends fabric.Stati
                     DottedlineType:           this.DottedlineType, // 线段类型 0 直线  1虚线  2 短长线
                     originXY:                   this.originXY,  // [x(left,center,right),y(top,center,bottom)]
                     textback:                   this.textback,
-                    textcolor:                  this.textcolor,
+                    fontColor:                  this.fontColor,
+                    fontSize:                   this.fontSize,
                     textdemo:                   this.textdemo,
                 };
 
@@ -30321,6 +30224,11 @@ fabric.util.object.extend(fabric.IText.prototype, /** @lends fabric.IText.protot
 })(typeof exports !== 'undefined' ? exports : this);
 
 
+/**
+ * 新需求创建rectWithText
+ *
+ *
+ * */
 
 (function(global) {
 
@@ -30358,6 +30266,8 @@ fabric.util.object.extend(fabric.IText.prototype, /** @lends fabric.IText.protot
             this.callSuper('initialize', rectOptions)
             this.text = new fabric.Textbox(text, {
                 ...textOptions,
+                width:parseInt(this.width*this.scaleX - textOptions.xLeft - textOptions.xRight),
+                height:parseInt(this.height*this.scaleY  - textOptions.yTop - textOptions.yBot),
                 splitByGrapheme:  true,
                 selectable: false,
                 evented: false,
@@ -30389,6 +30299,15 @@ fabric.util.object.extend(fabric.IText.prototype, /** @lends fabric.IText.protot
                 this.set('scaleY', 1);
             });
             this.on('added', () => {
+                const sin = Math.sin(fabric.util.degreesToRadians(this.angle));
+                const cos = Math.cos(fabric.util.degreesToRadians(this.angle));
+                const newTop = sin * this.textOffsetLeft + cos * this.textOffsetTop;
+                const newLeft = cos * this.textOffsetLeft - sin * this.textOffsetTop;
+                const rectLeftTop = this.getPointByOrigin('left', 'top');
+                this.text.set('left', rectLeftTop.x + newTop +this.text.xLeft);
+                this.text.set('top', rectLeftTop.y +newLeft +this.text.yTop);
+                this.text.set('width', parseInt(this.width*this.scaleX - this.text.xLeft - this.text.xRight));
+                this.text.set('height', parseInt(this.height*this.scaleY  - this.text.yTop - this.text.yBot));
                 this.canvas.add(this.text)
             });
             this.on('removed', () => {

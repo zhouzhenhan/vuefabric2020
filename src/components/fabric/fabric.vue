@@ -45,11 +45,7 @@
 
            <!-- opacity:'+  textareashow?1:0 + ';   wrap="off" -->
             <!--阿拉伯  lang="ar" dir="rtl"  white-space:pre-wrap; word-wrap:break-word;word-break:break-all   -->
-            <textarea name="text" id="" cols="30" rows="10"
-                      v-if="textareashow"   style="  white-space:pre-wrap; word-wrap:break-word; word-break:break-all;"
-                      :style="'position: fixed; top: ' + (style.top-2) +
-            'px; left: ' + (style.left-1)  + 'px; z-index: 999999;  width: ' + (style.width+1) + 'px; height: ' + style.height + 'px; font-size: ' + style.fontSize + 'px;font-family:' +style.fontFamily+ '; text-align:'+ style.textAlign +';border:1px dashed #ddd;outline:none; lineHeight:'+ style.lineHeight +'; transform: scale('+ canvasZoom +'); transform-origin:left top;' " v-model="textdata"
-                      @input="changetext" ></textarea> <!-- transform:scaleX(2);-->
+
 
         </div>
       </div>
@@ -207,12 +203,12 @@
           vnode = vnode.elm;
 
           el.dragstart = ((event)=>{
-            console.log('drag 0');
+           // console.log('drag 0');
             event.preventDefault();
             document.onmousemove = document.onmouseup = null
           });
           el.ondrag = ((event)=>{
-            console.log('drag 1');
+          //  console.log('drag 1');
             event.preventDefault();
             document.onmousemove = document.onmouseup = null;
             return false;
@@ -228,7 +224,7 @@
               return;
             }
 
-            console.log(scrollW,scrollH);
+           // console.log(scrollW,scrollH);
 
             // 获取鼠标在滑块中的位置
             let mouseX = event.clientX - vnode.offsetLeft;
@@ -337,7 +333,7 @@
 
       let keyCode = null;
       document.onkeydown = function(e) {
-        console.log('keyCode:',window.event.keyCode);
+       // console.log('keyCode:',window.event.keyCode);
         let keyCode = window.event.keyCode;
         if(event.shiftKey && window.event.keyCode===107){                                                               //shift + '+'
           that.ChangeZoom(1)
@@ -453,7 +449,7 @@
             tr: false
         });*/
         function deleteObject(eventData, transform) {
-            console.log('deleteobj------');
+          //  console.log('deleteobj------');
             var target = transform.target;
             var canvas = target.canvas;
             canvas.remove(target);
@@ -525,28 +521,6 @@
       this.canvas.on('mouse:dblclick', function (options) {
         that.$emit('mouse:dblclick', options);
 
-       // console.log('dblclick',options);
-        /*if(options.target.isType==='Text2'){
-            let newlines = options.target.item(1)._splitTextIntoLines(options.target.item(1).text).lines;
-            that.textdata = options.target.item(1).text ;   //String(newlines).replace(/,/g, "\n")
-
-            that.$set(that.style,'width',options.target.width);
-            that.$set(that.style,'height',options.target.height);
-            that.$set(that.style,'top',options.target.top);
-            that.$set(that.style,'left',options.target.left);
-            that.$set(that.style,'id',options.target.id);
-
-            that.$set(that.style,'fontSize',options.target.item(1).fontSize);
-            that.$set(that.style,'lineHeight',options.target.item(1).lineHeight +0.07);
-
-           // console.warn(options.target.item(1).fontFamily);
-            that.$set(that.style,'fontFamily',options.target.item(1).fontFamily);
-
-           // console.log(that.style);
-
-            that.textareashow = true;
-
-        }*/
       });
       this.canvas.on('mouse:over', function (options) {
         that.$emit('mouse:over', options);
@@ -569,7 +543,7 @@
           Direction = null;
       });
       this.canvas.on('object:modified', function (options) {
-          console.log('object:modified');
+        //  console.log('object:modified');
         that.$emit('object:modified', options);
             //矩形 等元素边框不变形计算宽高，缩放比例为1，宽高取整
          /* if(!options.target._objects){
@@ -850,7 +824,7 @@
             for (var i = objects.length - 1; i >= 0; i--) {
                 var object = objects[i];
                 if(object.visible ){
-                    console.log(object.component)
+                  //  console.log(object.component)
                     if(object.component !=='component'){  //判断不是背景也不是遮罩
                       event.preventDefault();
                       continue;
@@ -989,7 +963,7 @@
               }
           }
         }else{
-            console.log('未计算');
+           // console.log('未计算');
           for (let i = 0; i < length * this.stepLength / 50; i += this.stepLength) {
             if (i % this.stepLength === 0) {
               array.push({ id: i })
@@ -1038,32 +1012,6 @@
             return false;
         },
 
-        //改变文本域
-        changetext(value){
-            const text = value.srcElement.value;
-            let cur = this.getEditObj();
-            let newlines = cur.item(1)._splitTextIntoLines(text).lines;
-            let newtext ='';
-
-           // console.log(cur.item(1)._splitTextIntoLines(text))
-
-            //this.textdata = String(newlines).replace(/,/g, "\n");
-
-            this.textlines = newlines.length;
-
-            let text2 = '';
-            text2 = newlines.join('');
-
-
-            console.log(JSON.stringify(text));
-            console.log(text.length);
-            console.log(text2.length);
-
-            cur.item(1).set({text: text });
-            cur.set({textdemo:text });
-            this.renderCanvas();
-
-        },
 
         //获取画布所有元素
         getObjects(){
@@ -1206,7 +1154,7 @@
         let h = this.height>this.boxHeight?this.height:this.boxHeight;
 
         if(n===1){     //增加
-            console.log(w * this.canvasZoom);
+           // console.log(w * this.canvasZoom);
            if(w * this.canvasZoom >10000 || h * this.canvasZoom >10000){
                return;
            }
@@ -1367,6 +1315,7 @@
     //复制
     copyData(){
         let clipboard =  this.canvas.getActiveObject();
+        //console.log('复制：',clipboard);
 
         if(clipboard==undefined || clipboard==null){
             return;
@@ -1374,7 +1323,7 @@
         if(clipboard.get('type') === 'group'){                              //组复制
             return '#ZKONG#'+ escape(JSON.stringify(clipboard));
         }else if( clipboard.get('type') === 'activeSelection' ){            //多元素复制
-            console.log(clipboard._objects);
+          //  console.log(clipboard._objects);
 
             let _objects = JSON.parse(JSON.stringify(clipboard._objects));
             let newobjects = [];
@@ -1399,6 +1348,7 @@
         if(text.substring(0,7)!=='#ZKONG#'){
             return;
         }
+        //console.log(text);
         let _clipboard = JSON.parse(unescape(text.substring(7,text.length)));
 
         //console.log('所粘贴的元素：',_clipboard);
@@ -1421,6 +1371,7 @@
                     object.height =  object.height * object.scaleY;
                     object.scaleX = object.scaleY = 1;
                 }
+              //  console.log('粘贴',object);
                 let canvaobj = await this.createElement(object.isType,object);
 
                 if(canvaobj){
@@ -1909,6 +1860,13 @@
               ry:0,
             };
             canvasObject = new fabric.Rect({...newOptions});          //创建
+              canvasObject.on('scaled', (e) => {
+                  // console.log('scaling',e);
+                  e.target.set('width',parseInt(e.target.width*e.target.scaleX));
+                  e.target.set('height',parseInt(e.target.height*e.target.scaleY));
+                  e.target.set('scaleX',1);
+                  e.target.set('scaleY',1);
+              });
 
             break;
           case 'Rectangle':         //----------------------------------------------------------------------------------------圆角矩形
@@ -1920,6 +1878,13 @@
               ry:options.ry?options.ry:5,
             };
             canvasObject = new fabric.Rect({...newOptions});          //创建
+              canvasObject.on('scaled', (e) => {
+                 // console.log('scaling',e);
+                  e.target.set('width',parseInt(e.target.width*e.target.scaleX));
+                  e.target.set('height',parseInt(e.target.height*e.target.scaleY));
+                  e.target.set('scaleX',1);
+                  e.target.set('scaleY',1);
+              });
             break;
           case 'Parallelogram':     //----------------------------------------------------------------------------------------平行四边形
             newOptions = {
@@ -1932,6 +1897,17 @@
               skewY:0,   //暂不允许y轴变形吧 options.skewY?options.skewY:0,
             };
             canvasObject = new fabric.Rect({...newOptions});          //创建
+              canvasObject.setControlsVisibility({                        //上中、下中、左中、右中 取消
+                  bl: true,
+                  br: true,
+                  mb: false,
+                  ml: false,
+                  mr: false,
+                  mt: false,
+                  mtr: true,
+                  tl: true,
+                  tr: true
+              });
             break;
           case 'Circle':            //----------------------------------------------------------------------------------------椭圆形
             newOptions = {
@@ -1942,6 +1918,13 @@
               ry:options.height/2,     // options.ry?options.ry:15,
             };
             canvasObject = new fabric.Ellipse({...newOptions});          //创建
+              canvasObject.on('scaled', (e) => {
+                  // console.log('scaling',e);
+                  e.target.set('rx',parseInt(e.target.width*e.target.scaleX/2));
+                  e.target.set('ry',parseInt(e.target.height*e.target.scaleY/2));
+                  e.target.set('scaleX',1);
+                  e.target.set('scaleY',1);
+              });
             break;
           case 'EqualCircle':            //----------------------------------------------------------------------------------------正圆
             newOptions = {
@@ -1988,6 +1971,13 @@
               tl: false,
               tr: false
             });
+              canvasObject.on('scaled', (e) => {
+                  // console.log('scaling',e);
+                  e.target.set('width',parseInt(e.target.width*e.target.scaleX));
+                  e.target.set('height',parseInt(e.target.height*e.target.scaleY));
+                  e.target.set('scaleX',1);
+                  e.target.set('scaleY',1);
+              });
             break;
           case 'EqualTriangle':     //----------------------------------------------------------------------------------------等边三角
             newOptions = {
@@ -1996,6 +1986,17 @@
               name:options.name?options.name:'EqualTriangle',
             };
             canvasObject = new fabric.Triangle({...newOptions});          //创建
+              canvasObject.setControlsVisibility({                        //上中、下中、左中、右中 取消
+                  bl: true,
+                  br: true,
+                  mb: false,
+                  ml: false,
+                  mr: false,
+                  mt: false,
+                  mtr: true,
+                  tl: true,
+                  tr: true
+              });
             break;
           case 'Image':             //----------------------------------------------------------------------------------------图片
             canvasObject = await that.createURLImage(options);
@@ -2007,244 +2008,80 @@
           case 'Qrcode':            //----------------------------------------------------------------------------------------二维码
               canvasObject = await that.createQrcode(options);
              return canvasObject;
-          case 'Time2':
-              const rect1 = new fabric.Rect({
-                  name:options.name?options.name:'Textbg',
-                  component:"component",
-                  isType:'Textbg',
-                  isDiff: 'static',
-                  lockScalingFlip:true,
-
-                  /*originX: 'left',
-                  originY: 'top',
-                  left:0,
-                  top:0,*/
-              });
-              const text1 = new fabric.Text(options.text, {
-                  name:options.name?options.name:'Textcentent',
-                  component:"component",
-                  isType:'Textcentent',
-                  isDiff: 'static',
-                  fill:'#ff0000',
-                  splitByGrapheme: true,
-                  lockScalingFlip:true,
-                  fontSize:options.fontSize?options.fontSize:40,
-                  fontFamily:'Times New Roman',
-
-                 /* originX: 'left',
-                  originY: 'top',
-                  left:0,
-                  top:0,*/
-                 /* 'lineHeight':1.2,
-                  '_fontSizeFraction':0.26,
-                  '_fontSizeMult':0.95,*/
-              });
-              canvasObject = new fabric.Group([rect1,text1], {
-                  isType:'Time',
-                  name:options.name?options.name:'Time',
-                  width:text1.width,
-                  height:text1.height,
-                  originX: 'left',
-                  originY: 'top',
-                  flipX: false,
-                  flipY: false,
-                  lockSkewingX: true,                  //禁掉按住shift时的变形
-                  lockSkewingY:true,
-                  scaleX:1,
-                  scaleY:1,
-                                                        //禁止变形  lockUniScaling:true,
-
-                  id:options.id,
-                  left: options.left,
-                  top: options.top,
-                  angle:options.angle,
-                  imgText:options.text,
-
-
-
-
-
-
-                  isElasticSize:1,
-
-                  clipTo:function(ctx) {
-                      ctx.rect(-text1.width/2,-text1.height/2,text1.width,text1.height);
-                  }
-              });
-              canvasObject.item(0).set({'width':text1.width, 'height':text1.height,});
-
-              /*canvasObject.item(0).set({originX: 'left',originY: 'top', left: -text1.width/2,top: -parseFloat(text1.height/2),});
-              canvasObject.item(1).set({originX: 'left',originY: 'top', left: -text1.width/2,top: -parseFloat(text1.height/2),});*/
-
-             /*
-              canvasObject.item(1).set({'width':text1.width, 'height':text1.height,});*/
-
-                break;
-            case 'Time':
+            case 'Text':             //-----------------------------------------------------------------------------------------可编辑文本
                 canvasObject = await this.createText(options.textdemo,options);
+            case 'Time':         //----------------------------------------------------------------------------------------- 不可编辑时间
+                newOptions = {
+                    ...options,
+                    isType:'Time',
+                    name:options.name?options.name:'Time',
+                };
+                canvasObject = new fabric.Text(options.textdemo,newOptions);
+                canvasObject.setControlsVisibility({                        //上中、下中、左中、右中 取消
+                    bl: true,
+                    br: true,
+                    mb: false,
+                    ml: false,
+                    mr: false,
+                    mt: false,
+                    mtr: true,
+                    tl: true,
+                    tr: true
+                });
                 break;
-            case 'Text':
-                canvasObject = await this.createText(options.textdemo,options);
-                break;
-
-          case 'Text2':              //----------------------------------------------------------------------------------------文本
-
-
-              const rect = new fabric.Rect({
-                  width: options.width,
-                  height: options.height,
-                  fill: options.textback,
-                  originX: 'left',
-                  originY: 'top',
-                  left:0,
-                  top:0,
-
-                  name:options.name?options.name:'Textbg',
-                  component:"component",
-                  isType:'Textbg',
-                  isDiff: 'static',
-                  lockScalingFlip:true,
-              });
-              console.log('text2',rect);
-
-              options.textdemo = options.textdemo?options.textdemo:options.objects[1].text;
-              const text = new fabric.Textbox(options.textdemo, {
-                  left: 0,
-                  top: 0,
-                  originX: 'left',
-                  originY: 'top',
-                  centeredRotation: true,/*
-                  fill: options.textcolor,
-                  width: options.width,
-                  fontFamily:options.fontFamily,
-                  fontSize:options.fontSize,*/
-
-                  name:options.name?options.name:'Textcentent',
-                  component:"component",
-                  isType:'Textcentent',
-                  isDiff: 'static',
-                  splitByGrapheme: true,
-                  lockScalingFlip:true,
-
-                  editable: true
-              });
-
-              console.log('text2',text);
-              canvasObject = new fabric.Group([rect,text], {
-                  flipX: false,
-                  flipY: false,
-                  lockSkewingX: true,                  //禁掉按住shift时的变形
-                  lockSkewingY:true,
-                  originX: 'left',
-                  originY: 'top',
-                  width: options.width,
-                  height: options.height,
-
-                  id:options.id,
-                  left: options.left,
-                  top: options.top,
-                  name:options.name?options.name:'Text',
-                  angle:options.angle,
-                  component:"component",
-                  isType:'Text',
-                  isDiff: 'static',
-                  lockScalingFlip:true,
-                  minScaleLimit: 0.0001,                            //  最小限制
-                  textdemo:options.textdemo,
-                  textback:options.textback,
-                  textcolor:options.textcolor,
-
-                  stroke:'#000',
-                  strokeWidth:2,
-
-
-
-                 /* clipTo: function(ctx) {
-                      ctx.rect(-options.width/2,-options.height/2,options.width,options.height);
-                  }*/
-
-              });
-
-              /*canvasObject.item(0).set({
-                  top:-canvasObject.item(0).height/2-0.5,
-                  left:-canvasObject.item(0).width/2-0.5,
-              });
-
-              options.originXY = options.originXY ? options.originXY : ['left','top'];
-              if(options.originXY[0]==='left'){
-                  canvasObject.item(1).set({
-                      left:-canvasObject.item(0).width/2-0.5,
-                      textAlign: 'left',
-                  });
-              }else if(options.originXY[0]==='center'){
-                  canvasObject.item(1).set({
-                      left:-canvasObject.item(0).width/2-0.5,
-                      textAlign: 'center',
-                  });
-              }else if(options.originXY[0]==='right'){
-                  canvasObject.item(1).set({
-                      left:-canvasObject.item(0).width/2-0.5,
-                      textAlign: 'right',
-                  });
-              }
-              if(options.originXY[1]==='top'){
-                  canvasObject.item(1).set({
-                      top: -canvasObject.item(0).height/2,
-                  });
-              }else if(options.originXY[1]==='center'){
-                  canvasObject.item(1).set({
-                      top: - canvasObject.item(1).height/2,
-                  });
-              }else if(options.originXY[1]==='bottom'){
-                  canvasObject.item(1).set({
-                      top:canvasObject.item(0).height/2 - canvasObject.item(1).height,
-                  });
-              }*/
-
-            break;
-
-            case 'test':
+            case 'TextRect':    //-----------------------------------------------------------------------------------------可编辑文本加： 边距 背景 边框
                 const rectOptions = {
-                    left: 500,
-                    top: 200,
-                    width: 200,
-                    height: 75,
-                    fill: '#eee',
-                    originX:'left',
-                    originY:'top',
-                    stroke:'#000',
-                    strokeWidth:2,
+                    left: options.left,
+                    top: options.top,
+                    xLeft: options.xLeft?options.xLeft:0,
+                    xRight:options.xRight?options.xRight:0,
+                    yTop:options.yTop?options.yTop:0,
+                    yBot:options.yBot?options.yBot:0,
+                    width: options.width,
+                    height:  options.height,
+                    fill: options.fill?options.fill:'',
+
+                    stroke:options.stroke?options.stroke:'',
+                    strokeWidth:options.strokeWidth?options.strokeWidth:null,
                     strokeDashArray:[3,1],
+
+                    fontColor: options.fontColor?options.fontColor:'#000000',
+                    fontSize: options.fontSize?options.fontSize:14,
+                    fontFamily: options.fontFamily?options.fontFamily:'微软雅黑',
+                    textdemo: options.textdemo?options.textdemo:'TextRect',
+
                     minScaleLimit: 0.2,
                     flipX: false,
                     flipY: false,
                     lockSkewingX: true,                  //禁掉按住shift时的变形
                     lockSkewingY:true,
                     lockScalingFlip:true,
-
+                    originX:'left',
+                    originY:'top',
                     component:"component",
-                    isType:'newText',
+                    isType:'TextRect',
                     isDiff: 'static',
+                    name:options.name?options.name:'TextRect',
                 };
                 const textOptions = {
-                    left: 500,
-                    top: 200,
-                    xLeft:30,
-                    xRight:10,
-                    yTop:20,
-                    yBot:10,
-                    width: 200,
-                    height: 75,
-                    fill: '#333',
-                    fontSize: 30,
+                    left: options.left,
+                    top:  options.top,
+                    xLeft: options.xLeft?options.xLeft:0,
+                    xRight:options.xRight?options.xRight:0,
+                    yTop:options.yTop?options.yTop:0,
+                    yBot:options.yBot?options.yBot:0,
+                    width: options.width,
+                    height:  options.height,
+                    fill: options.fontColor?options.fontColor:'#000000',
+                    fontSize: options.fontSize?options.fontSize:14,
                     originX:'left',
                     originY:'top',
                     splitByGrapheme:  true,
                     lockScalingFlip:true,
                     minScaleLimit: 0.2,
                 };
-                canvasObject = new fabric.RectWithText(rectOptions, textOptions, 'Some text');
-                console.log(canvasObject);
+                canvasObject = new fabric.RectWithText(rectOptions, textOptions, options.textdemo);
+               // console.log(canvasObject);
                 break;
           default:                  //----------------------------------------------------------------------------------------其他
 
@@ -2524,7 +2361,7 @@
             if(lineWidth===0){
                 lineWidth = 1;
             }
-            console.log('条码线宽：',lineWidth);
+           // console.log('条码线宽：',lineWidth);
 
             options.set({
                 width:options.width * options.scaleX,
@@ -2870,10 +2707,12 @@
             flipY: false,
             originX: 'left',
             originY: 'top',
-          lockSkewingX: true,                  //禁掉按住shift时的变形
-          lockSkewingY:true,
+            lockSkewingX: true,                  //禁掉按住shift时的变形
+            lockSkewingY:true,
             stopContextMenu: true,                            //禁掉鼠标右键默认事件
         });
+
+
        /* let topdata = {
                 size:      1.13, // fontSize factor
                 baseline: 0.5  // baseline-shift factor (upwards)
@@ -2889,14 +2728,14 @@
         //创建文本
         createText2 (text, options) {
             options = Object.assign({width: 50, height: 30, left: -this.xLeft, top:  -this.yTop,  padding: 0, angle: 0, scaleX: 1,  scaleY: 1, }, options);
-            var canvasObj = new fabric.Textbox(text, {
+            var canvasObj = new fabric.Text(text, {
                 ...options,
                 left: -this.xLeft + options.left,
                 top:  -this.yTop + options.top,
                 id:options.id,
-                name:options.name?options.name:'Text',
+                name:options.name?options.name:'Time',
                 component:"component",
-                isType:'Text',
+                isType:'Time',
                 isDiff: 'static',
                 textAlign: 'left',
 

@@ -13,8 +13,14 @@
           <div class="components">
 
             <!--文本-->
-            <div class="oneComponent" @click="addCom('test',{width:150,height:300,textback:'#ff0',textcolor:'#f00',textdemo:'Text',originXY:['right','bottom']})">
+            <div class="oneComponent" @click="addCom('TextRect',{width:150,height:50,fill:'#000',fontColor:'#FFF',stroke:'#f00',strokeWidth: 2,
+            fontSize:30,textdemo:'abcdefg',originXY:['right','bottom']})">
               <div class="iconfont icon-wenben"></div>
+            </div>
+
+            <!--时间-->
+            <div class="oneComponent" @click="addCom('Time',{textdemo:'2010-10-10 10:30:10'})">
+              <div class="iconfont icon-jiacu"></div>
             </div>
 
             <!--线条-->
@@ -178,7 +184,6 @@
       objectscaled(obj){
         if(obj.target){
           this.changeTargetObj(obj.target);
-          this.changeInputObj();
         }
       },
       //对象移动

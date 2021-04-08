@@ -955,6 +955,12 @@
 
                 // canvas.rename(1, '我是边框矩形');
                 // this.$refs.canvas.setTop();
+
+
+
+
+
+
             },
         },
     }
@@ -977,4 +983,7 @@
     .btn{
         width:60px;line-height: 30px; cursor: pointer; margin-bottom: 10px;
     }
+
+
+
 </style>

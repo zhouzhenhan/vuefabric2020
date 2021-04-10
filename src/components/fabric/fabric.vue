@@ -30,12 +30,12 @@
    <div class="content" :style="'width: '+ boxWidth+'px;height:'+boxHeight+'px;' "  id ="content" >
      <GeminiScrollbar  :style="'width: '+ boxWidth+'px;height:'+boxHeight+'px;' ">
 
-      <div id="blackbox" class="black" :style="'position: absolute; '">
+      <div id="blackbox" class="black" :style="canvasZoom<1?'position: absolute;transform: translateX(-50%);left: 50%;':'position: absolute;'">
          <!-- top:'+returnXYshowcanvas(showXzhou,showYzhou)+'px; left: '+ returnXYshowcanvas(showYzhou,showXzhou)+'px;-->
         <div  class="yellow" :style="'width: '+(width * canvasZoom)+'px;height:'+(height * canvasZoom)+'px; '">
          <!-- <fabricbak ref="canvas" :width="width" :height="height" id="can"></fabricbak>-->
 
-            <input type="text" id="code" style="position:fixed; top:-100px; z-index:9999;"><!--style="visibility: hidden;"-->
+            <input type="text" id="code" style="position:fixed; top:-1000000px; z-index:9999;"><!--style="visibility: hidden;"-->
             <div style="position:fixed; top:-100px; z-index:9999;"> {{style.fontFamily}}</div>
           <canvas id="canvas" :width="width>boxWidth?width:boxWidth" :height="height>boxHeight?height:boxHeight" ></canvas>
 
@@ -135,7 +135,7 @@
                   y: null
               },
               menulists: [
-                  {
+                  /*{
                       fnHandler: '',
                       icoName: 'fa fa-home fa-fw',
                       btnName: this.$t('m.layer'),
@@ -161,7 +161,7 @@
                               btnName: this.$t('m.AtTheBottom')
                           }
                       ]
-                  },
+                  },*/
                   {
                       fnHandler: 'copypaste',
                       icoName: 'fa fa-home fa-fw',
@@ -303,6 +303,12 @@
           idno(val, oldVal){
              // console.log('val',val,'old,',oldVal);
               this.cid =val;
+          },
+          width(val,oval){
+              this.initBgRect();
+          },
+          height(val,oval){
+              this.initBgRect();
           }
       },
     mounted() {
@@ -347,24 +353,48 @@
         }
         if(keyCode===37){                                                                                               // ←
             that.getEditObj().left = parseInt(that.getEditObj().left - 1);
+            let objects = that.getObjectsNew();
+            objects.forEach((obj,i)=>{
+                if(obj.id===that.getEditObj().id && obj.isType ==='TextRect-text'){
+                    obj.left = parseInt(obj.left - 1);
+                }
+            });
             that.getEditObj().setCoords();
             that.canvas.requestRenderAll();
             that.canvas.renderAll();
         }
           if(keyCode===38){                                                                                             // ↑
               that.getEditObj().top = parseInt(that.getEditObj().top - 1);
+              let objects = that.getObjectsNew();
+              objects.forEach((obj,i)=>{
+                  if(obj.id===that.getEditObj().id && obj.isType ==='TextRect-text'){
+                      obj.top = parseInt(obj.top - 1);
+                  }
+              });
               that.getEditObj().setCoords();
               that.canvas.requestRenderAll();
               that.canvas.renderAll();
           }
           if(keyCode===39){                                                                                             // →
               that.getEditObj().left = parseInt(that.getEditObj().left + 1);
+              let objects = that.getObjectsNew();
+              objects.forEach((obj,i)=>{
+                  if(obj.id===that.getEditObj().id && obj.isType ==='TextRect-text'){
+                      obj.left = parseInt(obj.left + 1);
+                  }
+              });
               that.getEditObj().setCoords();
               that.canvas.requestRenderAll();
               that.canvas.renderAll();
           }
           if(keyCode===40){                                                                                             // ↓
               that.getEditObj().top = parseInt(that.getEditObj().top + 1);
+              let objects = that.getObjectsNew();
+              objects.forEach((obj,i)=>{
+                  if(obj.id===that.getEditObj().id && obj.isType ==='TextRect-text'){
+                      obj.top = parseInt(obj.top + 1);
+                  }
+              });
               that.getEditObj().setCoords();
               that.canvas.requestRenderAll();
               that.canvas.renderAll();
@@ -831,8 +861,17 @@
                     }
 
                     if (canvas.containsPoint(event, object)) {
-                        this.setActiveObject(object);
-                        //新增滚动条，所以定位有变化
+                        if(object.isType==='TextRect-text'){ //如果是组合文本上的文本 则选中下面的矩形
+                           let objects = this.getObjectsNew();
+                            objects.forEach((obj)=>{
+                                if(obj.id===object.id && obj.isType==='TextRect'){
+                                    this.setActiveObject(obj);
+                                }
+                            })
+                        }else{
+                            this.setActiveObject(object);
+                            //新增滚动条，所以定位有变化
+                        }
 
                         this.contextMenuData.axis = { x, y};
                         event.preventDefault();
@@ -863,6 +902,11 @@
           return 'hidden';
         }
       },
+        //标尺设置不显示
+        setNoSeeRuler(b){
+          this.showYzhou = b;
+          this.showXzhou = b;
+        },
       //标尺显示与否 判断画布坐标
       returnXYshowcanvas(b1,b2){
        // console.log(b1===true && b2===true);
@@ -1078,24 +1122,28 @@
         },
 
 
-      //单个删除 多个删除 不支持组合删除 ----delete快捷键 删除的
+      //单个删除 多个删除  ----delete快捷键 删除的
       removeCurrentObj () {
         let obj = this.canvas.getActiveObject();
         let deleteIds = [];
-       // console.log('del:',obj);
+        //console.log('删除了吗？:',obj);
 
-        if(obj._objects){
+        if(obj._objects){  //多选
           this.canvas.discardActiveObject();
           for(var i in obj._objects){
             deleteIds.push(obj._objects[i].id);
             this.canvas.remove(obj._objects[i]);
           }
             deleteIds.push(obj.id);
-            this.canvas.remove(obj);
-        }else{
+            this.canvas.remove(obj); //删除条码起作用
+        }else{  //单选
+          if(obj.isType==='TextRect-text'){ //如果是组合文本上的文本不可删除
+              return;
+          }
           deleteIds.push(obj.id);
           this.canvas.remove(obj);
         }
+
         this.canvas.renderAll();
           this.$emit('deleteidsdata',deleteIds);
         return deleteIds;
@@ -1104,6 +1152,9 @@
       //删除当前活跃元素 - 右键菜单调用该方法
       removeEditObj(){
         let obj = this.canvas.getActiveObject();
+          if(obj.isType==='TextRect-text'){ //如果是组合文本上的文本不可删除
+              return;
+          }
         this.$emit('deleteidsdata',[obj.id]);
         this.canvas.remove(obj);
       },
@@ -1184,6 +1235,16 @@
 
        // console.log('zoom:',this.canvasZoom);
       },
+        //返回最小缩放比
+        returnSmallScale(){
+            this.canvasZoom = this.canvas.getZoom();
+            let w = this.width>this.boxWidth?this.width:this.boxWidth;
+            let h = this.height>this.boxHeight?this.height:this.boxHeight;
+            if(w * (this.canvasZoom- 0.1) < this.boxWidth || h * (this.canvasZoom- 0.1) < this.boxHeight){
+                return;
+            }
+        },
+
       //设置画布背景颜色
       setbackground(color){
         this.canvas.backgroundColor = color;
@@ -1355,7 +1416,7 @@
 
         if(_clipboard instanceof Array){
 
-           // console.log('多个元素',_clipboard)
+            console.log('多个元素',_clipboard)
             let canvaobjs = [];
             this.activecanvaobjs = [];
             for(var i in _clipboard){
@@ -1372,10 +1433,12 @@
                     object.scaleX = object.scaleY = 1;
                 }
               //  console.log('粘贴',object);
+
                 let canvaobj = await this.createElement(object.isType,object);
 
                 if(canvaobj){
                    // console.log('元素返回：',canvaobj.id);
+                    this.$emit('copydata',object,[canvaobj.id]);
                     this.$emit('copyidsdata',[canvaobj.id]);  //一个一个复制
                     canvaobjs.push(canvaobj);
                 }
@@ -1392,7 +1455,7 @@
             this.canvas.setActiveObject(sel);
         }else{
 
-           // console.log('单个元素',_clipboard)
+            console.log('单个元素',_clipboard)
 
             this.$emit('idAdd');   //this.cid = this.cid + 1;
             this.cid = this.cid + 1;
@@ -1420,6 +1483,7 @@
 
             if(canvaobj){
                 //console.log('元素返回(单个)：',canvaobj);
+                this.$emit('copydata',_clipboard,[canvaobj.id]);
                 this.$emit('copyidsdata',[canvaobj.id]);  //单个元素 复制
                 this.canvas.setActiveObject(canvaobj);
             }
@@ -1460,7 +1524,7 @@
 
         this.$emit('setlefttop',left,top);
 
-
+        this.setStackingtrue(); //设置画布存在图层先后
         this.scaleCalc();    //标尺计算
 
       options = Object.assign({ width: this.width, height: this.height, left: 0, top: 0,  padding: 0, angle: 0, scaleX: 1,  scaleY: 1, }, options);
@@ -1533,27 +1597,27 @@
         //console.log(x1,x2,y1,y2,arrX,arrY);
 
         const rect1 = new fabric.Rect({
-            left: arrX[0],
-            top: arrY[0],
+            left: 0,
+            top: 0,
             width: arrX[1] - arrX[0],
             height: arrY[3] - arrY[0]
         });
         const rect2 = new fabric.Rect({
-            left: arrX[1] ,
-            top: arrY[0],
-            width: arrX[3] - arrX[1] + 2,
+            left:0 ,
+            top: 0,
+            width: arrX[3] + 2,
             height: arrY[1] - arrY[0]
         });
         const rect3 = new fabric.Rect({
             left: arrX[2],
-            top: arrY[1] - 1,
+            top: 0,
             width: arrX[3] - arrX[2],
-            height: arrY[2] - arrY[1] + 2
+            height: arrY[3] - arrY[0] + 2
         });
         const rect4 = new fabric.Rect({
-            left: arrX[1],
+            left: 0,
             top: arrY[2],
-            width: arrX[3] - arrX[1],
+            width: arrX[3] ,
             height: arrY[3] - arrY[2]
         });
 
@@ -1562,23 +1626,24 @@
         rect1.set({
             name: 'mask1',
             ...pathOption,
-            /*fill: 'red',*/
+           /* fill: 'red',*/
         })
         rect2.set({
             name: 'mask2',
             ...pathOption,
-            /*fill: 'yellow',*/
+           /* fill: 'yellow',*/
         })
         rect3.set({
             name: 'mask3',
             ...pathOption,
-            /*fill: 'blue',*/
+           /* fill: 'blue',*/
         })
         rect4.set({
             name: 'mask4',
             ...pathOption,
-            /*fill: 'green',*/
+           /* fill: 'green',*/
         });
+        this.canvas.remove(...this.canvas.getObjects('sMask'));
 
         let maskPath = new fabric.Group([rect1, rect2, rect3, rect4], {
             originX:'left',
@@ -1598,11 +1663,10 @@
             type: 'sMask',
             evented: false
         })
-
-      this.canvas.remove(...this.canvas.getObjects('sMask'));
       this.canvas.add(maskPath);
       maskPath.bringToFront();
 
+        this.canvas.requestRenderAll();
       this.canvas.renderTop();
       this.canvas.renderAll();
     },
@@ -2002,6 +2066,20 @@
             canvasObject = await that.createURLImage(options);
             //console.log(canvasObject);
             return canvasObject;
+          case 'Image2':             //----------------------------------------------------------------------------------------图片
+                canvasObject = await that.createURLImage(options);
+                  canvasObject.setControlsVisibility({                        //上中、下中、左中、右中 取消
+                      bl: true,
+                      br: true,
+                      mb: false,
+                      ml: false,
+                      mr: false,
+                      mt: false,
+                      mtr: true,
+                      tl: true,
+                      tr: true
+                  });
+                return canvasObject;
           case 'Barcode':           //----------------------------------------------------------------------------------------条码
               canvasObject = await that.createBarcode(options);
               return canvasObject;
@@ -2031,12 +2109,15 @@
                 break;
             case 'TextRect':    //-----------------------------------------------------------------------------------------可编辑文本加： 边距 背景 边框
                 const rectOptions = {
+                    id:options.id,
+                    type:options.type,
                     left: options.left,
                     top: options.top,
                     xLeft: options.xLeft?options.xLeft:0,
                     xRight:options.xRight?options.xRight:0,
                     yTop:options.yTop?options.yTop:0,
                     yBot:options.yBot?options.yBot:0,
+
                     width: options.width,
                     height:  options.height,
                     fill: options.fill?options.fill:'',
@@ -2056,6 +2137,7 @@
                     lockSkewingX: true,                  //禁掉按住shift时的变形
                     lockSkewingY:true,
                     lockScalingFlip:true,
+
                     originX:'left',
                     originY:'top',
                     component:"component",
@@ -2064,18 +2146,33 @@
                     name:options.name?options.name:'TextRect',
                 };
                 const textOptions = {
+                    id:options.id,
+                    type:options.type,
                     left: options.left,
                     top:  options.top,
                     xLeft: options.xLeft?options.xLeft:0,
                     xRight:options.xRight?options.xRight:0,
                     yTop:options.yTop?options.yTop:0,
                     yBot:options.yBot?options.yBot:0,
+
+
                     width: options.width,
                     height:  options.height,
+
                     fill: options.fontColor?options.fontColor:'#000000',
                     fontSize: options.fontSize?options.fontSize:14,
+
+                    fontColor: options.fontColor?options.fontColor:'#000000',
+                    fontFamily: options.fontFamily?options.fontFamily:'微软雅黑',
+                    textdemo: options.textdemo?options.textdemo:'TextRect',
+
                     originX:'left',
                     originY:'top',
+                    component:"component",
+                    isType:'TextRect-text',
+                    isDiff: 'static',
+                    name:options.name?options.name:'TextRect',
+
                     splitByGrapheme:  true,
                     lockScalingFlip:true,
                     minScaleLimit: 0.2,
@@ -2413,7 +2510,7 @@
         renderCanvas(){
             this.canvas.requestRenderAll();
             this.canvas.renderAll();
-
+            this.setTop();
             //this.setZoom(this.canvasZoom + 0.00001);
         },
 
@@ -2795,6 +2892,18 @@
               }
           }
       },
+
+        //获取自己组装的元素
+        getObjectsNew(){
+            let objects = this.getObjects();
+            let newobj = [];
+            for(let i in objects){
+                if(objects[i].component === 'component'){
+                    newobj.push(objects[i]);
+                }
+            }
+            return newobj;
+        },
 
 
 

@@ -13685,6 +13685,10 @@ fabric.util.object.extend(fabric.StaticCanvas.prototype, /** @lends fabric.Stati
                     fontColor:                  this.fontColor,
                     fontSize:                   this.fontSize,
                     textdemo:                   this.textdemo,
+                    xLeft:                this.xLeft,
+                    xRight:               this.xRight,
+                    yTop:                 this.yTop,
+                    yBot:                 this.yBot,
                 };
 
 

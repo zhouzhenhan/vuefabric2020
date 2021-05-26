@@ -42,6 +42,8 @@
 
       <b @click="getObjectsNew">获取全部元素</b>
 
+      <b  @click="$refs.canvas.setNewTable($refs.canvas.getEditObj(),table2)">新增一列</b>
+
 
     </div>
 
@@ -50,19 +52,19 @@
           <div class="components">
 
             <!--文本-->
-            <div class="oneComponent" @click="addCom('TextRect',{width:250,height:100,fill:'#fff',fontColor:'#000',stroke:'#f00',strokeWidth: 2,
+            <div class="oneComponent" @click="addCom('TextRect',{hasRotatingPoint:false,width:250,height:100,fontColor:'#f00',backgroundColor:'#ff0',stroke:'#f00',strokeWidth: 2,
             xLeft:10,yTop:20,xRight:30,yBot:40,
             fontSize:30,textdemo:'abcdefg',originXY:['right','bottom']})">
               <div class="iconfont icon-wenben"></div>
             </div>
 
             <!--时间-->
-            <div class="oneComponent" @click="addCom('Time',{textdemo:'2010-10-10 10:30:10'})">
+            <div class="oneComponent" @click="addCom('Time',{hasRotatingPoint:false,textdemo:'2010-10-10 10:30:10'})">
               <div class="iconfont icon-jiacu"></div>
             </div>
 
             <!--线条-->
-            <div class="oneComponent" @click="addCom('Dottedline',{ strokeWidth:2,DottedlineType:2,})">
+            <div class="oneComponent" @click="addCom('Dottedline',{ hasRotatingPoint:false,strokeWidth:2,DottedlineType:2,})">
               <div class="iconfont icon-zhixian"></div>
             </div>
 
@@ -82,17 +84,37 @@
             </div>
 
             <!--图片-->
-            <div class="oneComponent" @click="addCom('Image',{width:80,height:80,})">
+            <div class="oneComponent" @click="addCom('Image',{hasRotatingPoint:false,width:80,height:80,})">
+              <div class="iconfont icon-tupian3"></div>
+            </div>
+
+            <!--图片2-->
+            <div class="oneComponent" @click="addCom('Image2',{hasRotatingPoint:false,width:80,height:80,src:'http://47.118.58.9:8410/group1/M00/00/18/rBMAA2CBCw2AVX1sADXcr0OOIYE104.jpg'})">
+              <div class="iconfont icon-tupian3"></div>
+            </div>
+
+            <!--图片3-->
+            <div class="oneComponent" @click="addCom('Image3',{hasRotatingPoint:false,width:80,height:80,src:'../../../static/images/6.png'})">
+              <div class="iconfont icon-tupian3"></div>
+            </div>
+
+            <!--图片3-->
+            <div class="oneComponent" @click="addCom('Image3',{hasRotatingPoint:false,width:80,height:80,src:'../../../static/images/8.png'})">
+              <div class="iconfont icon-tupian3"></div>
+            </div>
+
+            <!--图片4-->
+            <div class="oneComponent" @click="addCom('equalImage',{hasRotatingPoint:false,width:80,height:80,src:'../../../static/images/8.png'})">
               <div class="iconfont icon-tupian3"></div>
             </div>
 
             <!--条形码-->
-            <div class="oneComponent" @click="addCom('Barcode',{originXY:['center','top'] })">
+            <div class="oneComponent" @click="addCom('Barcode',{hasRotatingPoint:false,width:600,height:30,originXY:['left','top'] ,lineColor:'#ff0000'})">
               <div class="iconfont icon-tiaoma"></div>
             </div>
 
             <!--二维码-->
-            <div class="oneComponent" @click="addCom('Qrcode',{width:80,height:80,})">
+            <div class="oneComponent" @click="addCom('Qrcode',{hasRotatingPoint:false,width:80,height:80,lineColor:'#ff0000'})">
               <div class="iconfont icon-erweima1"></div>
             </div>
 
@@ -105,6 +127,17 @@
             <div class="oneComponent" @click="addCom('Parallelogram')">
               <div class="iconfont icon-pinghangsibianxing"></div>
             </div>
+
+            <!--表格-->
+            <div class="oneComponent" @click="addCom('tableView',)">
+              <div class="iconfont icon-pinghangsibianxing"></div>
+            </div>
+
+            <!--表格2-->
+            <div class="oneComponent" @click="addCom('tableList',{},table)">
+              <div class="iconfont icon-juxing1"></div>
+            </div>
+
           </div>
 
       </div>
@@ -168,6 +201,228 @@
         origin:[0,0], //新组件位置
         originx:0,
         originy:0,
+        table:{
+          tableinfo:{
+            left:500,
+            top:300,
+            row:3,
+            col:3,
+            width:184,
+            height:134,
+            titleLineHeight:52,
+            bodyLineHeight:40,
+            times:5,
+            animate:0,
+            borderWidth:1,
+            borderColor:'#ffff00',
+            borderType:0,
+            bgColors:['#A4CFFC','#AACF98'],
+
+          },
+          tableList:[{
+            type:0,
+            col:1,
+            width:60,
+            height:50,
+            fontType:"",
+            fontSize:14,
+            fontColor:"#000000",
+            value:"A列",
+            bgcolor:"#EEEEEE",
+            position:5,
+            field:"itemTitle",
+            fieldType:0,
+          },{
+            type:0,
+            col:2,
+            width:60,
+            height:50,
+            fontType:"",
+            fontSize:16,
+            fontColor:"#000000",
+            value:"B列",
+            bgcolor:"#EEEEEE",
+            position:5,
+            field:"itemTitle",
+            fieldType:0,
+          },{
+            type:0,
+            col:3,
+            width:60,
+            height:50,
+            fontType:"",
+            fontSize:16,
+            fontColor:"#000000",
+            value:"C列",
+            bgcolor:"#EEEEEE",
+            position:5,
+            field:"itemTitle",
+            fieldType:0,
+          },{
+            type:1,
+            col:1,
+            width:60,
+            height:40,
+            fontType:"",
+            fontSize:14,
+            fontColor:"#000000",
+            value:"A列值",
+            bgcolor:"#EEEEEE",
+            position:5,
+            field:"",
+            fieldType:0,
+          },{
+            type:1,
+            col:2,
+            width:60,
+            height:40,
+            fontType:"",
+            fontSize:14,
+            fontColor:"#000000",
+            value:"B列值",
+            bgcolor:"#EEEEEE",
+            position:5,
+            field:"",
+            fieldType:0,
+          },{
+            type:1,
+            col:3,
+            width:60,
+            height:40,
+            fontType:"",
+            fontSize:12,
+            fontColor:"#ff0000",
+            value:"C列值",
+            bgcolor:"#EEEEEE",
+            position:9,
+            field:"",
+            fieldType:0,
+          }]
+        },
+        table2:{
+          tableinfo:{
+            left:500,
+            top:300,
+            row:3,
+            col:4,
+            width:245,
+            height:134,
+            titleLineHeight:52,
+            bodyLineHeight:40,
+            times:5,
+            animate:0,
+            borderWidth:1,
+            borderColor:'#ffff00',
+            borderType:0,
+            bgColors:['#A4CFFC','#AACF98'],
+
+          },
+          tableList:[{
+            type:0,
+            col:1,
+            width:60,
+            height:50,
+            fontType:"",
+            fontSize:14,
+            fontColor:"#000000",
+            value:"A列",
+            bgcolor:"#EEEEEE",
+            position:5,
+            field:"itemTitle",
+            fieldType:0,
+          },{
+            type:0,
+            col:2,
+            width:60,
+            height:50,
+            fontType:"",
+            fontSize:16,
+            fontColor:"#000000",
+            value:"B列",
+            bgcolor:"#EEEEEE",
+            position:5,
+            field:"itemTitle",
+            fieldType:0,
+          },{
+            type:0,
+            col:3,
+            width:60,
+            height:50,
+            fontType:"",
+            fontSize:16,
+            fontColor:"#000000",
+            value:"C列",
+            bgcolor:"#EEEEEE",
+            position:5,
+            field:"itemTitle",
+            fieldType:0,
+          },{
+            type:0,
+            col:4,
+            width:60,
+            height:50,
+            fontType:"",
+            fontSize:16,
+            fontColor:"#000000",
+            value:"D列",
+            bgcolor:"#EEEEEE",
+            position:5,
+            field:"itemTitle",
+            fieldType:0,
+          },{
+            type:1,
+            col:1,
+            width:60,
+            height:40,
+            fontType:"",
+            fontSize:14,
+            fontColor:"#000000",
+            value:"A列值",
+            bgcolor:"#EEEEEE",
+            position:5,
+            field:"",
+            fieldType:0,
+          },{
+            type:1,
+            col:2,
+            width:60,
+            height:40,
+            fontType:"",
+            fontSize:14,
+            fontColor:"#000000",
+            value:"B列值",
+            bgcolor:"#EEEEEE",
+            position:5,
+            field:"",
+            fieldType:0,
+          },{
+            type:1,
+            col:3,
+            width:60,
+            height:40,
+            fontType:"",
+            fontSize:12,
+            fontColor:"#ff0000",
+            value:"C列值",
+            bgcolor:"#EEEEEE",
+            position:9,
+            field:"",
+            fieldType:0,
+          },{
+            type:1,
+            col:4,
+            width:60,
+            height:40,
+            fontType:"",
+            fontSize:12,
+            fontColor:"#ff0000",
+            value:"aaa",
+            bgcolor:"#EEEEEE",
+            position:9,
+            field:"",
+            fieldType:0,
+          }]
+        }
       }
     },
     mounted() {
@@ -314,9 +569,67 @@
           fill:'#ff0000',
           top:200,
         })*/
+
+        let element = this.$refs.canvas.createElement('TextRect',{hasRotatingPoint:false,width:250,height:100,fontColor:'#f00',backgroundColor:'#ff0',stroke:'#f00',strokeWidth: 2,
+          xLeft:10,yTop:20,xRight:30,yBot:40,
+          fontSize:30,textdemo:'abcdefg',originXY:['right','bottom']});
+      /*
+       山田模板中测试四角按钮改变
+       var deleteIcon = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAABRElEQVQ4T7WVsU4CQRCG//8SYqOxt4aE3SMo0GnsLKWUQl9AfQY7fQb1BWywE0sTC6MVB0rIHQm02hsrQ3JjADc5904TZd1qMzv/N9mZ2VkiYw3z+YW3XK4hwjLIskBWJ24EnyDSI6W3NB43C6PRuy2nbegqVRDwVICtrGDGRuCGkMNKFA2Tfl+AQbG0Dcatn0CpM/HqtUH/OhFotu1ovS+Cs1/BPp1JHFTD8HyWFgDdYmk9Znz/F5jReOJtVAb9B976/uJyLHcCrM0DJPD46nGT7aK/S8qFDatFITtKNwXYsZJ+WY3CRqC02BoR7rGt/GNCjjLKPxUmoQRStqROwBMGWl9BUM+6bhIwObcDpDREi4HSzwBWvsufgU47ISMFlu7lH4Cur+y8KM7bxnljO396puxOh4OBOh1fBup0wBroPF/AB6iE3j8DlE/8AAAAAElFTkSuQmCC";
+        fabric.Canvas.prototype.customiseControls({
+          settings: {
+            borderColor: '#e4e4e4',
+            cornerSize: 14,
+            cornerShape: 'rect',  // 'rect', 'circle'
+            cornerBackgroundColor: '#e4e4e4'
+          },
+          tr: {
+            icon:delimg,
+            action: (eventData, transform)=>{        //删除
+              var target = transform;
+              var canvas = target.canvas;
+              canvas.remove(target);
+              canvas.requestRenderAll();
+            },
+            cursor:deleteIcon,
+
+          },
+          tl: {
+            icon:'../../assets/d.png',
+            action: (eventData, transform)=>{        //复制
+              var target = transform;
+              var canvas = target.canvas;
+              target.clone(function(cloned) {
+                cloned.left += 10;
+                cloned.top += 10;
+                canvas.add(cloned);
+              });
+            },
+            cursor:'pointer',
+
+          },
+        });
+        element.setControlsVisibility({
+          bl: false,
+          br: true,
+          mb: false,
+          ml: false,
+          mr: false,
+          mt: false,
+          mtr: false,
+          tl: true,
+          tr: true
+        });
+        element.setCoords();
+        this.$refs.canvas.renderCanvas();  //画布渲染变化
+
+        console.warn(element);*/
+
+
+
       },
       //创建组件
-      addCom(name,options){
+      addCom(name,options,table){
         if(!options){
           options = {};
         }
@@ -326,11 +639,19 @@
         this.origin[1] = this.origin[1] + 10;
         options['left'] = this.origin[0];
         options['top'] = this.origin[1];
-        this.$refs.canvas.createElement(name,{...options});
+
+        if(name==='tableList'){
+          table.tableinfo.id = options.id;
+
+          this.$refs.canvas.createElement('tableList',table);
+        }else{
+          this.$refs.canvas.createElement(name,{...options});
+        }
+
       },
       //画布变化触发数据变动
       changeTargetObj(data){
-        console.log(data);
+       // console.log(data);
 
       },
       //右边数据触发画布变化

@@ -1,8 +1,9 @@
 <template>
   <div class="bigbox" :style="'width: '+ boxWidth+'px;height:'+boxHeight+'px;' "  @contextmenu="showMenu">
-
-    <div style="position: fixed; top:-9999999999px; left:800px; z-index:999999;">
+      <!-- -9999999999-->
+    <div style="position: fixed; top: -9999999999999999999px; left:800px; z-index:999999;">
       <img id="barcode" />
+        <div id="barbox"></div>
       <img id="qrcode" :src="qrcodeImg" alt="" class="qrcodeImg">
     </div>
     <!--  <div class="title">{{name}}:{{width}}*{{height}} | {{boxWidth}}:{{boxHeight}}</div>-->
@@ -424,10 +425,16 @@
 
 
         document.addEventListener('paste', function (event) {
+            //console.warn(event);
+
             var text = event.clipboardData.getData('Text');
-            that.paste(text);
-            event.clipboardData.setData('Text','');
-            event.clipboardData.clearData('Text');
+            if(text.substring(0,7)==='#ZKONG#'){
+                that.paste(text);
+                event.clipboardData.setData('Text','');
+                event.clipboardData.clearData('Text');
+            }
+
+
         });
 
 
@@ -490,7 +497,7 @@
       fabric.Object.prototype.originY = 'center';   //设置中心为左上角
 
      // canvas.backgroundColor = '#ffffff';
-      canvas.selection = true;
+      canvas.selection = true;  //不允许多选false;允许多选true
       canvas.controlsAboveOverlay = false;
       canvas.skipOffscreen = true;
       canvas.preserveObjectStacking = true;
@@ -541,6 +548,41 @@
       });
       this.canvas.on('mouse:down', function (options) {
         that.$emit('mouse:down', options);
+        console.log(options);
+
+          /*if(options.target && options.target.isType==='tableList'){
+              console.log('mousedown:',options.target);
+          }*/
+        /*if(options.target && options.target.isType==='tableView'){
+           let cur =  that.judeisTableHeadorBody(options); //判断点击的是表格的几行几列
+            console.log(cur);
+
+            that.setTableHeadData(options.target,cur.row,cur.col,'我是改名字'); //修改表头名字
+
+            /!*that.setTableHeadStyle(options.target,{ //修改表头样式
+                fontType:"宋体",
+                fontSize:12,
+                fontColor:"#ffffff",
+                bgColor:"#ff6600",
+                lineHeight:40,
+            });
+
+            that.setTableBodyStyle(options.target,{       //修改表体样式
+                fontType:"宋体",
+                fontSize:14,
+                fontColor:"#ff6600",
+                bgColor:"#ffffff",
+                lineHeight:40,
+            });*!/
+
+           // that.setTableHeadHeight(options.target,60); //修改表结构高度
+
+
+
+
+
+        }
+*/
       });
       this.canvas.on('mouse:up', function (options) {
         that.$emit('mouse:up', options);
@@ -641,6 +683,8 @@
           }*/
 
 
+
+
       });
       this.canvas.on('object:scaled', function (options) {
         that.$emit('object:scaled', options);
@@ -665,6 +709,7 @@
             options.target.set('scaleX',  1);
             options.target.set('scaleY',  1);
             //console.log(options.target.width,options.target.height);
+            console.log(options.target);
             that.changeQrcodeImage(options.target);
             that.setActiveObject(options.target);
         }
@@ -674,6 +719,11 @@
             //console.log('内容',options);
             that.changeBarcodeImage(options.target);
         }
+        setTimeout(()=>{
+            that.setTop();                                         //遮罩置顶
+            that.canvas.renderAll();
+        },10);
+
 
       });
       this.canvas.on('object:selected', function (options) {
@@ -690,8 +740,43 @@
 
         that.$emit('object:moving', options);
 
+        console.log(options.target._objects);
+
+        if(options.target._objects){
+
+            let sin,cos,newTop,newLeft,rectLeftTop;
+
+            options.target._objects.forEach((one)=>{
+
+                if(one.isType==="TextRect" ){
+
+                    sin = Math.sin(fabric.util.degreesToRadians(one.angle));
+                    cos = Math.cos(fabric.util.degreesToRadians(one.angle));
+                    newTop = sin * one.textOffsetLeft + cos * one.textOffsetTop;
+                    newLeft = cos * one.textOffsetLeft - sin * one.textOffsetTop;
+                    rectLeftTop = one.getPointByOrigin('left', 'top');
+                    console.log(sin,cos,newTop,newLeft,rectLeftTop,one);
+                }
+            });
+
+            let objects = that.getObjectsNew();
+            //console.warn(objects);
+            objects.forEach((one)=>{
+                if(one.isType === "TextRect-text"){
+                    console.warn(sin,cos,newTop,newLeft,rectLeftTop,one);
+                   /* one.set('left', rectLeftTop.x + newTop +one.xLeft);
+                    one.set('top', rectLeftTop.y +newLeft +one.yTop);
+                    one.set('width', parseInt(one.width*one.scaleX -one.xLeft - one.xRight));
+                    one.set('height', parseInt(one.height*one.scaleY  - one.yTop - one.yBot));*/
+                }
+            })
+
+        }
+
+
+
          // console.log('moving',options,Top,Left);
-          var obj = options.target;
+         /* var obj = options.target;
           obj.setCoords();
           // top-left  corner
           if (obj.getBoundingRect().top < 0 || obj.getBoundingRect().left < 0) {
@@ -704,7 +789,7 @@
 
               obj.top = Math.min(obj.top, (obj.canvas.height - obj.getBoundingRect().height - 1 * that.canvasZoom) / that.canvasZoom + obj.top - obj.getBoundingRect().top / that.canvasZoom + 2);
               obj.left = Math.min(obj.left, (obj.canvas.width - obj.getBoundingRect().width - 1 * that.canvasZoom) / that.canvasZoom + obj.left - (obj.getBoundingRect().left / that.canvasZoom - 2));
-          }
+          }*/
 
         //矩形 等元素边框不变形计算宽高，缩放比例为1，宽高取整
           if(!options.target._objects) {
@@ -1432,6 +1517,24 @@
                     object.height =  object.height * object.scaleY;
                     object.scaleX = object.scaleY = 1;
                 }
+                if( object.isType ==='Text'){
+                    object.width =  parseInt(object.width * object.scaleX);
+                    object.height =  parseInt(object.height * object.scaleY);
+                    object.scaleX = 1;
+                    object.scaleY = 1;
+                }
+                if( object.isType ==='Image'){
+                    object.width =  parseInt(object.width * object.scaleX);
+                    object.height =  parseInt(object.height * object.scaleY);
+                    object.scaleX = 1;
+                    object.scaleY = 1;
+                }
+                if( object.isType ==='Image2'){
+                    object.width =  parseInt(object.width * object.scaleX);
+                    object.height =  parseInt(object.height * object.scaleY);
+                    object.scaleX = 1;
+                    object.scaleY = 1;
+                }
               //  console.log('粘贴',object);
 
                 let canvaobj = await this.createElement(object.isType,object);
@@ -1472,6 +1575,18 @@
                 _clipboard.scaleY = 1;
             }
             if( _clipboard.isType ==='Text'){
+                _clipboard.width =  parseInt(_clipboard.width * _clipboard.scaleX);
+                _clipboard.height =  parseInt(_clipboard.height * _clipboard.scaleY);
+                _clipboard.scaleX = 1;
+                _clipboard.scaleY = 1;
+            }
+            if( _clipboard.isType ==='Image'){
+                _clipboard.width =  parseInt(_clipboard.width * _clipboard.scaleX);
+                _clipboard.height =  parseInt(_clipboard.height * _clipboard.scaleY);
+                _clipboard.scaleX = 1;
+                _clipboard.scaleY = 1;
+            }
+            if( _clipboard.isType ==='Image2'){
                 _clipboard.width =  parseInt(_clipboard.width * _clipboard.scaleX);
                 _clipboard.height =  parseInt(_clipboard.height * _clipboard.scaleY);
                 _clipboard.scaleX = 1;
@@ -1837,8 +1952,25 @@
 
       //画条码
       drawbarcode(number,option){
+          //console.log(option);
           return new Promise(function(resolve, reject) {
-              JsBarcode("#barcode", number, {
+
+              let barbox = document.getElementById('barbox');
+              let bardom  = document.createElement('img');
+              let barid = 'barcode'+option.id;
+              bardom.id = 'barcode'+option.id;
+              let allnode = barbox.childNodes;
+              let ids = [];  //所有子节点的id集合
+              allnode.forEach((node)=>{
+                  ids.push(node.getAttribute('id'));
+              });
+              if(ids.indexOf(barid)==-1){
+                barbox.appendChild(bardom);//为了解决多个条码，他们用图需要不一样
+              }
+
+             // console.log(barbox,bardom);
+
+              JsBarcode('#barcode'+option.id, number, {
                   format: option.format ? option.format : "CODE128",  //条形码的格式
                   lineColor: option.lineColor ? option.lineColor : "#000000",  //线条颜色
                   margin: option.margin ? option.margin : 0, // 条码四边空白（默认为10px）
@@ -1846,14 +1978,18 @@
                   height: option.height ? option.height : 20,  //条码高度
                   displayValue: false //是否显示文字信息
               });
-              document.getElementById("barcode").onload = () => {
-                 // console.log(document.getElementById("barcode").src);
-                  let img = document.getElementById("barcode").src;
+
+              document.getElementById('barcode'+option.id).onload = () => {
+                  // console.log(document.getElementById("barcode").src);
+                  let img = document.getElementById('barcode'+option.id).src;
                   resolve(img);
               };
-              document.getElementById("barcode").onerror = function() {
+              document.getElementById('barcode'+option.id).onerror = function() {
                   reject(new Error('barcode is error!' ));
               };
+
+
+
           });
       },
 
@@ -1912,6 +2048,8 @@
 
           selectable: options.selectable!==false ? true : options.selectable,                 //元素是否可选中
           visible: options.visible!==false ? true : options.visible,                          //元素是否可见
+
+            hasRotatingPoint:   options.hasRotatingPoint!==false ? true : options.hasRotatingPoint,
         };
 
         switch(name){
@@ -2080,6 +2218,24 @@
                       tr: true
                   });
                 return canvasObject;
+            case 'Image3':             //----------------------------------------------------------------------------------------图片
+                canvasObject = await that.createURLImage(options);
+                canvasObject.setControlsVisibility({                        //上中、下中、左中、右中 取消
+                bl: true,
+                br: true,
+                mb: true,
+                ml: true,
+                mr: true,
+                mt: true,
+                mtr: true,
+                tl: true,
+                tr: true
+            });
+                return canvasObject;
+            case 'equalImage':
+                console.warn('equalImage',options);
+                canvasObject = that.createEqualImageImage(options);
+                return canvasObject;
           case 'Barcode':           //----------------------------------------------------------------------------------------条码
               canvasObject = await that.createBarcode(options);
               return canvasObject;
@@ -2120,7 +2276,7 @@
 
                     width: options.width,
                     height:  options.height,
-                    fill: options.fill?options.fill:'',
+                    fill:options.backgroundColor?options.backgroundColor:'rgba(0,0,0,0)',
 
                     stroke:options.stroke?options.stroke:'',
                     strokeWidth:options.strokeWidth?options.strokeWidth:null,
@@ -2144,6 +2300,7 @@
                     isType:'TextRect',
                     isDiff: 'static',
                     name:options.name?options.name:'TextRect',
+                    hasRotatingPoint:options.hasRotatingPoint,
                 };
                 const textOptions = {
                     id:options.id,
@@ -2166,6 +2323,9 @@
                     fontFamily: options.fontFamily?options.fontFamily:'微软雅黑',
                     textdemo: options.textdemo?options.textdemo:'TextRect',
 
+
+                    textAlign: options.textAlign? options.textAlign:'left',
+
                     originX:'left',
                     originY:'top',
                     component:"component",
@@ -2176,86 +2336,354 @@
                     splitByGrapheme:  true,
                     lockScalingFlip:true,
                     minScaleLimit: 0.2,
+                    hasRotatingPoint:options.hasRotatingPoint,
                 };
                 canvasObject = new fabric.RectWithText(rectOptions, textOptions, options.textdemo);
                // console.log(canvasObject);
                 break;
-          default:                  //----------------------------------------------------------------------------------------其他
+            case 'tableView':
+                let tableStyle = {
+                    left:500,
+                    top:500,
+                    width:300,
+                    height:130,
+                    row:3,
+                    col:3,
 
+                    background:'#ffff00',
+
+                    borderWidth:0,
+                    borderColor:"#000000",
+                    borderDashArray: [0,0],
+
+                    lineRowWidth:1,
+                    lineRowColor:"#666666",
+                    lineRowDashArray: [0,0],
+
+                    lineColWidth:1,
+                    lineColColor:"#666666",
+                    lineColDashArray: [0,0],
+                }
+                let tableHead = {
+                    style:{
+                        height:40,
+                        fontType:"宋体",
+                        fontSize:18,
+                        fontColor:"#000000",
+                        bgColor:"#ffffff",
+                        lineHeight:40,
+                    },
+                    data:[{
+                        width:200,
+                        name:"表头名称1",
+                        fileType:0,
+                        fileCode:"itemTitle"
+                    },{
+                        width:50,
+                        name:"表头名称2",
+                        fileType:0,
+                        fileCode:"itemTitle"
+                    },{
+                        width:50,
+                        name:"表头名称3",
+                        fileType:0,
+                        fileCode:"itemTitle"
+                    }]
+                }
+                let tableBody = {
+                    style:{
+                        fontType:"宋体",
+                        fontSize:16,
+                        fontColor:"#ffffff",
+                        bgColor:"#000000",
+                        lineHeight:20,
+                    },
+                    data: [],
+                }
+                canvasObject = new fabric.tableView(canvas,tableStyle,tableHead,tableBody);
+                break;
+            case 'tableList':
+                console.log('tableList',options.tableinfo.width);
+                let table = {
+                    tableinfo:{
+                        left:500,
+                        top:300,
+                        row:3,
+                        col:3,
+                        width:184,
+                        height:134,
+                        titleLineHeight:52,
+                        bodyLineHeight:40,
+                        times:5,
+                        animate:0,
+                        borderWidth:1,
+                        borderColor:'#ffff00',
+                        borderType:0,
+                        bgColors:['#A4CFFC','#AACF98'],
+
+                    },
+                    tableList:[{
+                        type:0,
+                        col:1,
+                        width:60,
+                        height:50,
+                        fontType:"",
+                        fontSize:14,
+                        fontColor:"#000000",
+                        value:"A列",
+                        bgcolor:"#EEEEEE",
+                        position:5,
+                        field:"itemTitle",
+                        fieldType:0,
+                    },{
+                        type:0,
+                        col:2,
+                        width:60,
+                        height:50,
+                        fontType:"",
+                        fontSize:16,
+                        fontColor:"#000000",
+                        value:"B列",
+                        bgcolor:"#EEEEEE",
+                        position:5,
+                        field:"itemTitle",
+                        fieldType:0,
+                    },{
+                        type:0,
+                        col:3,
+                        width:60,
+                        height:50,
+                        fontType:"",
+                        fontSize:16,
+                        fontColor:"#000000",
+                        value:"C列",
+                        bgcolor:"#EEEEEE",
+                        position:5,
+                        field:"itemTitle",
+                        fieldType:0,
+                    },{
+                        type:1,
+                        col:1,
+                        width:60,
+                        height:40,
+                        fontType:"",
+                        fontSize:14,
+                        fontColor:"#000000",
+                        value:"A列值",
+                        bgcolor:"#EEEEEE",
+                        position:5,
+                        field:"",
+                        fieldType:0,
+                    },{
+                        type:1,
+                        col:2,
+                        width:60,
+                        height:40,
+                        fontType:"",
+                        fontSize:14,
+                        fontColor:"#000000",
+                        value:"B列值",
+                        bgcolor:"#EEEEEE",
+                        position:5,
+                        field:"",
+                        fieldType:0,
+                    },{
+                        type:1,
+                        col:3,
+                        width:60,
+                        height:40,
+                        fontType:"",
+                        fontSize:12,
+                        fontColor:"#ff0000",
+                        value:"C列值",
+                        bgcolor:"#EEEEEE",
+                        position:9,
+                        field:"",
+                        fieldType:0,
+                    }]
+                };
+                canvasObject = new fabric.tableList(canvas,table);
+
+                setTimeout(()=>{
+                    console.warn(canvasObject.table);
+                    that.setActiveObject(canvasObject.table.group);
+                    canvasObject.table.group.setCoords();
+                    that.canvas.add(canvasObject);
+                    that.setTop();                                         //遮罩置顶
+                },1);
+
+
+                break;
+
+          default:
+
+              //----------------------------------------------------------------------------------------其他
+                console.log("default");
         }
 
-          canvasObject.setCoords();
-          this.setActiveObject(canvasObject);
-          this.canvas.add(canvasObject);
-          this.setTop();                                         //遮罩置顶
-          this.canvas.renderAll();
-          return canvasObject;
+         // console.warn(canvasObject);
+
+          if(name === 'tableList'){
+              this.canvas.renderAll();
+              return canvasObject;
+          }else{
+            canvasObject.setCoords();
+              this.setActiveObject(canvasObject);
+              this.canvas.add(canvasObject);
+              this.setTop();                                         //遮罩置顶
+              this.canvas.renderAll();
+              return canvasObject;
+          }
 
       },
+        createoneImage(options){
+            let that = this;
+            let canvas = this.canvas;
+
+
+        },
         //获取创建的图片结果
         createURLImage(options){
             let that = this;
             let canvas = this.canvas;
             return new Promise(function(resolve, reject) {
                 options.src = options.src ? options.src:'./static/images/img.svg';
-                fabric.Image.fromURL(options.src, function (img) {
 
-                    img.set({                   //图片不设置宽度高度，来定义图片放大缩小
-                        id: options.id ? options.id : 'image',
-                        isType: 'Image',
-                        component:"component",
-                        isDiff: 'static',
-                        padding: 0,
-                        flipX: false,
-                        flipY: false,
-                        originX: 'left',
-                        originY: 'top',
-                        stopContextMenu: true,                            //  禁掉鼠标右键默认事件
-                        minScaleLimit: 0.0001,                            //  最小限制
-                        lockSkewingX: true,                               //  禁掉按住shift时的变形
-                        lockSkewingY:true,
+                console.log(options.src);
+                var downImg = new Image();
+                 downImg.crossOrigin="anonymous";
+                downImg.src = options.src;
 
-                        left: options.left,
-                        top: options.top,
-                        angle: options.angle ? options.angle : 0,
-                        name: options.name ? options.name : 'Image',
-                        /*scaleX:  options.width / img.width,
-                        scaleY: options.height / img.height,
-                        width: img.width,
-                        height: img.height,
-        */
-                        scaleX:options.scaleX,
-                        scaleY:options.scaleY,
-                        width: options.width,
-                        height: options.height,
-                        stroke: options.stroke?options.stroke:'',                              // 边框颜色
-                        strokeWidth: options.strokeWidth?options.strokeWidth:0,                             // 边框宽度
-                        strokeDashArray:options.strokeDashArray?options.strokeDashArray:[0,0],              // 边框样式 虚线 [5,1]     直线[0,0]  线段也是这个参数
+                downImg.onload = function(){
+                    //console.log('图片加载成功');
+                    fabric.Image.fromURL(options.src, function (img) {
+                        img.crossOrigin = 'Anonymous';
+                        options.crossOrigin = 'Anonymous';
 
-                        selectable: options.selectable!==false ? true : options.selectable,                 //元素是否可选中  如段码屏中可见不可移动false
-                        visible: options.visible!==false ? true : options.visible,                          //元素是否可见
+                        img.set({                   //图片不设置宽度高度，来定义图片放大缩小
+                            id: options.id ? options.id : 'image',
+                            type:options.type?options.type:0,
+                            isType: 'Image',
+                            component:"component",
+                            isDiff: 'static',
+                            padding: 0,
+                            flipX: false,
+                            flipY: false,
+                            originX: 'left',
+                            originY: 'top',
+                            stopContextMenu: true,                            //  禁掉鼠标右键默认事件
+                            minScaleLimit: 0.0001,                            //  最小限制
+                            lockSkewingX: true,                               //  禁掉按住shift时的变形
+                            lockSkewingY:true,
+
+                            left: options.left,
+                            top: options.top,
+                            angle: options.angle ? options.angle : 0,
+                            name: options.name ? options.name : 'Image',
+
+                            scaleX:  options.width / img.width,
+                            scaleY: options.height / img.height,
+                            width: img.width,
+                            height: img.height,
+
+                           /* scaleX:options.scaleX,
+                            scaleY:options.scaleY,
+                            width: options.width,
+                            height: options.height,*/
+                            stroke: options.stroke?options.stroke:'',                              // 边框颜色
+                            strokeWidth: options.strokeWidth?options.strokeWidth:0,                             // 边框宽度
+                            strokeDashArray:options.strokeDashArray?options.strokeDashArray:[0,0],              // 边框样式 虚线 [5,1]     直线[0,0]  线段也是这个参数
+
+                            selectable: options.selectable!==false ? true : options.selectable,                 //元素是否可选中  如段码屏中可见不可移动false
+                            visible: options.visible!==false ? true : options.visible,                          //元素是否可见
+                            hasRotatingPoint: options.hasRotatingPoint!==false ? true : options.hasRotatingPoint,                          //元素是否旋转
+                        });
+                        img.hasControls = true;
+                        img.hasBorders = true;
+
+                        canvas.add(img); // 把图片添加到画布上
+                        that.activecanvaobjs.push(img);   //设置活跃元素
+                        that.activeobj = img;
+                        if (options && options.registeObjectEvent) {
+                            Utils.registeObjectEvent(that, img);
+                        }
+                        img.setCoords();
+                        that.setActiveObject(img);
+                        canvas.renderAll.bind(canvas);
+                        that.setTop();  //遮罩置顶
+
+                        resolve(img);
+
                     });
-                    img.hasControls = true;
-                    img.hasBorders = true;
+                };
+                downImg.onerror = function(){
+                    options.src = './static/images/img.svg';
+                    fabric.Image.fromURL(options.src, function (img) {
 
-                    canvas.add(img); // 把图片添加到画布上
-                    that.activecanvaobjs.push(img);   //设置活跃元素
-                    that.activeobj = img;
-                    if (options && options.registeObjectEvent) {
-                        Utils.registeObjectEvent(that, img);
-                    }
-                    img.setCoords();
-                    that.setActiveObject(img);
-                    canvas.renderAll.bind(canvas);
-                    that.setTop();  //遮罩置顶
+                        img.set({                   //图片不设置宽度高度，来定义图片放大缩小
+                            id: options.id ? options.id : 'image',
+                            type:options.type?options.type:0,
+                            isType: 'Image',
+                            component:"component",
+                            isDiff: 'static',
+                            padding: 0,
+                            flipX: false,
+                            flipY: false,
+                            originX: 'left',
+                            originY: 'top',
+                            stopContextMenu: true,                            //  禁掉鼠标右键默认事件
+                            minScaleLimit: 0.0001,                            //  最小限制
+                            lockSkewingX: true,                               //  禁掉按住shift时的变形
+                            lockSkewingY:true,
 
-                    resolve(img);
+                            left: options.left,
+                            top: options.top,
+                            angle: options.angle ? options.angle : 0,
+                            name: options.name ? options.name : 'Image',
+                            /*scaleX:  options.width / img.width,
+                            scaleY: options.height / img.height,
+                            width: img.width,
+                            height: img.height,
+            */
+                            scaleX:options.scaleX,
+                            scaleY:options.scaleY,
+                            width: options.width,
+                            height: options.height,
+                            stroke: options.stroke?options.stroke:'',                              // 边框颜色
+                            strokeWidth: options.strokeWidth?options.strokeWidth:0,                             // 边框宽度
+                            strokeDashArray:options.strokeDashArray?options.strokeDashArray:[0,0],              // 边框样式 虚线 [5,1]     直线[0,0]  线段也是这个参数
 
-                });
+                            selectable: options.selectable!==false ? true : options.selectable,                 //元素是否可选中  如段码屏中可见不可移动false
+                            visible: options.visible!==false ? true : options.visible,                          //元素是否可见
+
+                            hasRotatingPoint: options.hasRotatingPoint!==false ? true : options.hasRotatingPoint,                          //元素是否旋转
+                        });
+                        img.hasControls = true;
+                        img.hasBorders = true;
+
+                        canvas.add(img); // 把图片添加到画布上
+                        that.activecanvaobjs.push(img);   //设置活跃元素
+                        that.activeobj = img;
+                        if (options && options.registeObjectEvent) {
+                            Utils.registeObjectEvent(that, img);
+                        }
+                        img.setCoords();
+                        that.setActiveObject(img);
+                        canvas.renderAll.bind(canvas);
+                        that.setTop();  //遮罩置顶
+
+                        resolve(img);
+
+                    });
+                }
+
+
+
 
             });
 
         },
+
         //获取创建二维码的结果
         createQrcode(options){
             let that = this;
@@ -2280,6 +2708,8 @@
                         left: options.left,
                         top: options.top,
                         id:options.id,
+                        type:options.type?options.type:'0',
+
                         name:options.name?options.name:'Qrcode',
                         angle:options.angle,
                         component:"component",
@@ -2293,6 +2723,8 @@
                         originY: 'top',
                         lockUniScaling:true,
                         imgText :options.imgText,
+                        lineColor:options.lineColor,
+                        hasRotatingPoint: options.hasRotatingPoint!==false ? true : options.hasRotatingPoint,                          //元素是否旋转
 
                     });
                     canvas.add(canvasObject);
@@ -2317,7 +2749,22 @@
                 let canvasObject;
                 options.imgText = options.imgText ? options.imgText:'barcode123456789';
                 options.barlineWidth = options.barlineWidth ? options.barlineWidth : 1;
-                JsBarcode("#barcode", options.imgText, {
+
+                let barbox = document.getElementById('barbox');
+                let bardom  = document.createElement('img');
+                let barid = 'barcode'+options.id;
+                bardom.id = 'barcode'+options.id;
+
+                let allnode = barbox.childNodes;
+                allnode.forEach((node)=>{
+                    if(node.getAttribute('id')===barid){
+                        document.getElementById('barcode'+options.id).remove();
+                    }
+                })
+                barbox.appendChild(bardom);//为了解决多个条码，他们用图需要不一样
+
+                JsBarcode("#barcode"+options.id, options.imgText, {
+                    id:options.id,
                     format: options.format?options.format:"CODE128",  //条形码的格式
                     lineColor:  options.lineColor?options.lineColor:"#000000",  //线条颜色
                     margin:  options.margin?options.margin:0, // 条码四边空白（默认为10px）
@@ -2327,11 +2774,12 @@
                 });
 
                 options.originXY = options.originXY? options.originXY :['left','top'];
-                document.getElementById("barcode").onload = ()=>{
-                    const barcodeIMG = new fabric.Image(document.getElementById('barcode'), {
+                document.getElementById(barid).onload = ()=>{
+
+                    const barcodeIMG = new fabric.Image(document.getElementById(barid), {
 
                         id:options.id,
-                        width:document.getElementById('barcode').width,   //document.getElementById('barcode').width, >options.width?document.getElementById('barcode').width:options.width
+                        width:document.getElementById(barid).width,   //document.getElementById('barcode').width, >options.width?document.getElementById('barcode').width:options.width
                         height:options.height,
                         name:options.name?options.name:'barcodeimg',
                         angle:options.angle,
@@ -2348,6 +2796,8 @@
                         lockScalingY:true,
                         lockRotation:true,
                         imgText :options.imgText,
+                        lineColor:options.lineColor,
+                        hasRotatingPoint: options.hasRotatingPoint!==false ? true : options.hasRotatingPoint,                          //元素是否旋转
 
                     });
 
@@ -2365,6 +2815,7 @@
                         component:"component",
                         isType:'barcodebg',
                         isDiff: 'static',
+                        hasRotatingPoint: options.hasRotatingPoint!==false ? true : options.hasRotatingPoint,                          //元素是否旋转
                     });
 
                     canvasObject = new fabric.Group([rect,barcodeIMG], {
@@ -2375,6 +2826,8 @@
                         originXY:[options.originXY[0],'top'],
                         id:options.id,
 
+                        type:options.type?options.type:'0',
+
                         name:options.name?options.name:'Barcode',
                         angle:options.angle,
                         component:"component",
@@ -2382,14 +2835,18 @@
                         isDiff: 'static',
                         width:options.width,
                         height:options.height,
-                        imgText:options.imgText,
                         barlineWidth:options.barlineWidth,
+
+                        imgText :options.imgText,
+                        lineColor:options.lineColor,
 
                         lockRotation:true,
                         flipX: false,
                         flipY: false,
                         lockSkewingX: true,                  //禁掉按住shift时的变形
                         lockSkewingY:true,
+
+                        hasRotatingPoint: options.hasRotatingPoint!==false ? true : options.hasRotatingPoint,                          //元素是否旋转
                     });
 
 
@@ -2397,7 +2854,7 @@
                     // console.log(options.originXY[0],options.width,document.getElementById('barcode').width);
                     let left = 0;
                     let w = options.width;
-                    let barw = document.getElementById('barcode').width;
+                    let barw = document.getElementById(barid).width;
                     if(options.originXY[0]==='left'){
                         left = w<barw ? Math.abs(barw-w)/2 : - Math.abs(barw-w)/2;
                     }else if(options.originXY[0]==='center'){
@@ -2418,10 +2875,11 @@
                     canvas.renderAll();
                     /*that.activecanvaobjs.push(canvasObject);   //设置活跃元素
                     that.activeobj = canvasObject;*/
+                    that.changeBarcodeImage(canvasObject); //改变一下试试
                     resolve(canvasObject);
 
                 }
-                document.getElementById("barcode").onerror = function() {
+                document.getElementById(barid).onerror = function() {
                     reject(new Error('barcode error load!' ));
                 };
             });
@@ -2440,12 +2898,15 @@
          // console.log('change image:',options.height);
           this.createElement(options.isType,{
               ...options,
+              imgText:options.imgText,
+              lineColor:options.lineColor,
               left: left,
               top:  top,
               width: parseInt(options.width * options.scaleX),
               height: parseInt(options.height * options.scaleY),
               scaleX:1,
               scaleY:1,
+
           });
       },
         //改变条码的图片和大小
@@ -2471,8 +2932,9 @@
             });
 
             let newoptions = {
+                id:options.id?options.id:0,
                 format: options.item(1).format ? options.item(1).format : "CODE128",  //条形码的格式
-                lineColor:  "#000000",  //线条颜色
+                lineColor:  options.lineColor?options.lineColor:'#000000',  //线条颜色
                 margin: 0, // 条码四边空白（默认为10px）
                 lineWidth: lineWidth, //线宽
                 height: options.item(1).height ? options.item(1).height : 20,  //条码高度
@@ -2481,7 +2943,7 @@
 
             let left = 0;
             let w = options.width;
-            let barw = document.getElementById('barcode').width;
+            let barw = document.getElementById('barcode'+newoptions.id).width;
             if(options.originXY[0]==='left'){
                 left = w<barw ? Math.abs(barw-w)/2 : - Math.abs(barw-w)/2;
             }else if(options.originXY[0]==='center'){
@@ -2497,12 +2959,156 @@
                 scaleX:1,
             });
 
+            this.setZoom(this.canvasZoom);
             this.canvas.requestRenderAll();
             this.canvas.renderAll();
 
-            this.setZoom(this.canvasZoom + 0.00001);
+            /*
+
+            setTimeout(()=>{
+                this.setZoom(this.canvasZoom - 0.00001);
+            },100)*/
 
             //console.log('barcode:',options.item(1)._element,img);
+        },
+
+
+        //创建非跨域图片最大缩放图片
+         createEqualImageImage(options){
+
+         console.log('00000000000000000000');
+
+            let that = this;
+            let canvas = this.canvas;
+            return new Promise(function(resolve, reject) {
+                options.url = options.url ? options.url:'./static/images/img.svg';
+                var img = document.createElement("img");
+
+                img.crossOrigin = 'Anonymous';
+                img.src = options.url;
+
+                img.onload = function () {
+
+                    let imgwidth = 0;
+                    let imgheight = 0;
+
+                    if(img.width/img.height>options.width/options.height){
+                        imgwidth = options.width;
+                        imgheight = options.width/(img.width/img.height);
+                    }else{
+                        imgheight = options.height;
+                        imgwidth = options.height * (img.width/img.height);
+                    }
+
+
+
+                    var canvasImage = new fabric.Image(img,  {
+                        id: options.id ? options.id : 'image',
+                        isType:'equalImage-img',
+                        padding: 0,
+                        flipX: false,
+                        flipY: false,
+                        stopContextMenu: true,                            //  禁掉鼠标右键默认事件
+                        minScaleLimit: 0.0001,                            //  最小限制
+                        lockSkewingX: true,                               //  禁掉按住shift时的变形
+                        lockSkewingY:true,
+
+                        originX:"center",
+                        originY:"center",
+                        /*left:0,
+                        top:0,*/
+                        /*scaleX: width / img.width,
+                        scaleY: height / img.height,*/
+
+                        scaleX: imgwidth / img.width,
+                        scaleY: imgheight / img.height,
+
+                        angle: options.angle ? options.angle : 0,
+                        name: options.name ? options.name : 'Image',
+
+                        stroke: options.stroke?options.stroke:'',                              // 边框颜色
+                        strokeWidth: options.strokeWidth?options.strokeWidth:0,                             // 边框宽度
+                        strokeDashArray:options.strokeDashArray?options.strokeDashArray:[0,0],              // 边框样式 虚线 [5,1]     直线[0,0]  线段也是这个参数
+
+                        selectable: options.selectable!==false ? true : options.selectable,                 //元素是否可选中  如段码屏中可见不可移动false
+                        visible: options.visible!==false ? true : options.visible,                          //元素是否可见
+                    });
+
+                    canvasImage.hasControls = true;
+                    canvasImage.hasBorders = true;
+
+                    var rect = new fabric.Rect({
+                        isType:'equalImage-bg',
+                        padding: 0,
+                        originX:"center",
+                        originY:"center",
+                        width: options.width ? options.width :100,
+                        height: options.height ? options.height:100,
+                        fill: options.background ? options.background:'#eeeeee',
+
+                    });
+
+                    var group = new fabric.Group([ rect,canvasImage], {
+                        isType:'equalImage',
+                        left: options.left,
+                        top: options.top,
+                        width:options.width,
+                        height:options.height,
+                        originX:"left",
+                        originY:"top",
+                        padding: 0,
+                        id:options.id,
+
+                        hasRotatingPoint:false,
+                        lockScalingFlip:true,
+                        minScaleLimit: 0.2,
+                    });
+
+                    group.on('scaling', function(e) {
+                        let newimgwidth=0;
+                        let newimgheight=0;
+
+                        if(img.width/img.height>(group.width*group.scaleX)/(group.height*group.scaleY)){
+                            newimgwidth = (group.width*group.scaleX);
+                            newimgheight = (group.width*group.scaleX)/(img.width/img.height);
+                            group.item(1).set('scaleX', newimgwidth / img.width /group.scaleX);
+                            group.item(1).set('scaleY',newimgheight / img.height/group.scaleY);
+                        }else{
+                            newimgheight = (group.height*group.scaleY);
+                            newimgwidth = (group.height*group.scaleY) * (img.width/img.height);
+                            group.item(1).set('scaleX', newimgwidth / img.width /group.scaleX);
+                            group.item(1).set('scaleY', newimgheight / img.height/group.scaleY);
+                        }
+                        canvas.requestRenderAll();
+                        canvas.renderAll();
+                    });
+
+
+                    group.setControlsVisibility({
+                        bl: true,
+                        br: true,
+                        mb: true,
+                        ml: true,
+                        mr: true,
+                        mt: true,
+                        mtr: false,
+                        tl: true,
+                        tr: true
+                    });
+                    canvas.add(group); // 把图片添加到画布上
+
+                    if (options && options.registeObjectEvent) {
+                        Utils.registeObjectEvent(that, img);
+                    }
+                    group.setCoords();
+                    that.setActiveObject(group);
+                    canvas.renderAll.bind(canvas);
+
+                    resolve(group);
+
+                };
+
+            });
         },
 
 
@@ -2905,6 +3511,13 @@
             return newobj;
         },
 
+        //文本编辑时，自动切割
+        clipText(cur){
+            this.setActiveObject(cur);
+            this.canvas.requestRenderAll();
+            this.canvas.renderAll();
+        },
+
 
 
       //设置鼠标手
@@ -2924,6 +3537,141 @@
         },
 
 
+        //判断是表格的表头还是表体 group.dirty = true
+        judeisTableHeadorBody(options){
+            let objects = options.target._objects;
+            let col = 0;
+            let row = 0;
+
+            objects.forEach((object)=>{
+                if(object.left+options.target.width/2 < options.pointer.x-options.target.left
+                    && options.pointer.x-options.target.left < object.left +options.target.width/2 +object.width){
+                    col = object.no;
+                }
+                if(object.top+options.target.height/2 < options.pointer.y-options.target.top
+                    && options.pointer.y-options.target.top < object.top +options.target.height/2 +object.height){
+                    row = object.nrow;
+                }
+            });
+            return {row:row,col:col }
+        },
+
+        //改表头的文字
+        setTableHeadData(groups,nrow,no,text){
+            groups.tableHead.data[no-1].name = text;
+            groups._objects.forEach((object)=>{
+                if(object.isType==='table-theadtext'&& object.nrow===nrow && object.no===no ){
+                    object.set('text',text);
+                }
+            });
+            this.canvas.requestRenderAll();
+            this.canvas.renderAll();
+        },
+
+        //改表头的样式
+        setTableHeadStyle(groups,tableHeadstyle){
+            groups.tableHead.style = {...groups.tableHead.style,...tableHeadstyle};
+            groups._objects.forEach((object)=>{
+                if(object.isType==='table-theadbg'){
+                    object.set('fill',tableHeadstyle.bgColor);
+                }
+                if(object.isType==='table-theadtext'){
+                    object.set('fontSize',tableHeadstyle.fontSize);
+                    object.set('fill',tableHeadstyle.fontColor);
+                    object.set('fontType',tableHeadstyle.fontType);
+                    object.set('lineHeight',tableHeadstyle.lineHeight);
+                }
+                this.canvas.requestRenderAll();
+                this.canvas.renderAll();
+            })
+        },
+
+        //改表体的样式
+        setTableBodyStyle(groups,tabletbodystyle){
+            groups.tableBody.style = {...groups.tableBody.style,...tabletbodystyle};
+            groups._objects.forEach((object)=>{
+                if(object.isType==='table-tbodybg'){
+                    object.set('fill',tabletbodystyle.bgColor);
+                }
+                if(object.isType==='table-tbodytext'){
+                    object.set('fontSize',tabletbodystyle.fontSize);
+                    object.set('fill',tabletbodystyle.fontColor);
+                    object.set('fontType',tabletbodystyle.fontType);
+                    object.set('lineHeight',tabletbodystyle.lineHeight);
+                }
+                this.canvas.requestRenderAll();
+                this.canvas.renderAll();
+            })
+        },
+        //设置表头的高度
+        setTableHeadHeight(group,height){
+          if(!height){
+              return;
+          }
+            let canvas = this.canvas;
+            let tableStyle2 = group.item(0).tableStyle;
+            let tableHead2 = group.item(0).tableHead;
+            let tableBody2 = group.item(0).tableBody;
+
+            group.tableHead.style.height = height; //修改表格表头数据
+            tableHead2.style.height = height;             //表头高度修改
+
+            canvas.remove(group);
+
+            new fabric.tableView(canvas,tableStyle2,tableHead2,tableBody2);
+
+            canvas.requestRenderAll();
+            canvas.renderAll();
+        },
+
+
+        //设置 某列的样式和宽度
+        //style: width ,bgcolor, fontType, fontSize, fontColor, position
+        setTableHeadHeight(group,no,style){
+            if(!style || !style){
+                return;
+            }
+
+            let canvas = this.canvas;
+            let tableStyle2 = group.item(0).tableStyle;
+            let tableHead2 = group.item(0).tableHead;
+            let tableBody2 = group.item(0).tableBody;
+
+            group.tableHead.style.height = height; //修改表格表头数据
+            tableHead2.style.height = height;             //表头高度修改
+
+            canvas.remove(group);
+
+            new fabric.tableView(canvas,tableStyle2,tableHead2,tableBody2);
+
+            canvas.requestRenderAll();
+            canvas.renderAll();
+        },
+
+
+        //按原来的id表格
+        setNewTable(groups,table){
+            if(!table){
+                table = groups.item(0).tableStyle;
+            }
+            let canvas = this.canvas;
+            canvas.remove(groups);
+            //console.log(table);
+            let canvasObject = new fabric.tableList(this.canvas,table);
+            let that = this;
+            setTimeout(()=>{
+               // console.warn(canvasObject.table);
+                that.setActiveObject(canvasObject.table.group);
+                canvasObject.table.group.setCoords();
+                that.canvas.add(canvasObject);
+                that.setTop();                                         //遮罩置顶
+            },1);
+            canvas.requestRenderAll();
+            canvas.renderAll();
+        },
+
+
+
 
 
 
@@ -2932,6 +3680,18 @@
   }
 </script>
 
+
+
+<style lang="scss">
+    .btnchange{
+        opacity: 0;
+        cursor: col-resize;
+        outline: none;
+        &:hover{
+             opacity: 1;
+         }
+    }
+</style>
 <style scoped lang="scss">
 
 

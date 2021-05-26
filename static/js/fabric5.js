@@ -9428,7 +9428,7 @@ fabric.PatternBrush = fabric.util.createClass(fabric.PencilBrush, /** @lends fab
          * @type String
          * @default
          */
-        uniScaleKey:           'shiftKey',
+        uniScaleKey:           'B',  //shiftKey  happychange
 
         /**
          * When true, objects use center point as the origin of scale transformation.
@@ -9539,7 +9539,7 @@ fabric.PatternBrush = fabric.util.createClass(fabric.PencilBrush, /** @lends fab
         selectionLineWidth:     1,
 
         /**
-         * Select only shapes that are fully contained in the dragged selection rectangle.
+         * Select only shapes that are fully contained in the dragged selection rectangle.//happy change to true 仅选择完全包含在拖动的选择矩形中的形状。
          * @type Boolean
          * @default
          */
@@ -13689,6 +13689,16 @@ fabric.util.object.extend(fabric.StaticCanvas.prototype, /** @lends fabric.Stati
                     xRight:               this.xRight,
                     yTop:                 this.yTop,
                     yBot:                 this.yBot,
+                    lineColor:            this.lineColor,
+
+                    ncol:              this.ncol, //记录表格和背景配对
+                    nrow:              this.nrow, //行
+                    row:               this.row,
+                    col:               this.col,
+                    tableStyle:             this.tableStyle,
+                    tables:                 this.tables,
+                    layoutElementId:        this.layoutElementId,
+
                 };
 
 
@@ -20735,6 +20745,7 @@ fabric.util.object.extend(fabric.Object.prototype, /** @lends fabric.Object.prot
     fabric.Image.fromURL = function(url, callback, imgOptions) {
         fabric.util.loadImage(url, function(img) {
             callback && callback(new fabric.Image(img, imgOptions));
+            //console.log(imgOptions);
         }, null, imgOptions && imgOptions.crossOrigin);
     };
 
@@ -30249,6 +30260,8 @@ fabric.util.object.extend(fabric.IText.prototype, /** @lends fabric.IText.protot
         _prevAngle: 0,
         _wordJoiners:'b',
 
+
+
         recalcTextPosition: function () {
 
             const sin = Math.sin(fabric.util.degreesToRadians(this.angle));
@@ -30266,25 +30279,42 @@ fabric.util.object.extend(fabric.IText.prototype, /** @lends fabric.IText.protot
 
         },
 
+        recalcTextPosition2: function (target) {
+            console.log(this,target);
+        },
+
         initialize: function (rectOptions, textOptions, text) {
-            this.callSuper('initialize', rectOptions)
+            //console.log(rectOptions,textOptions);
+            this.callSuper('initialize', rectOptions);
+
+
             this.text = new fabric.Textbox(text, {
                 ...textOptions,
+                fill:textOptions.fontColor?textOptions.fontColor:'#ffffff',
+                fillColor:textOptions.fontColor?textOptions.fontColor:'#ffffff',
                 width:parseInt(this.width*this.scaleX - textOptions.xLeft - textOptions.xRight),
                 height:parseInt(this.height*this.scaleY  - textOptions.yTop - textOptions.yBot),
                 splitByGrapheme:  true,
-                selectable: false,
+                selectable: true,
                 evented: false,
-                clipTo: function(ctx) {
-                    ctx.rect(-this.width/2,-this.height/2,this.width,this.height);
+                clipTo: function(e) {
+                   //console.log(this.text);
+                    if(e){
+                        e.canvas.getContext('2d').rect(-this.width/2,-this.height/2,this.width,this.height);
+                    }
+
                 }
             });
 
             this.textOffsetLeft = this.text.left - this.left ;
             this.textOffsetTop = this.text.top - this.top ;
 
-            this.on('moving', () => {
-                this.recalcTextPosition()
+            this.on('moving', (e) => {
+
+                console.log('文本移动：',e);
+                this.recalcTextPosition();
+
+                //this.recalcTextPosition2();
             });
             this.on('rotating', () => {
                 this.text.rotate(this.text.angle + this.angle - this._prevAngle)
@@ -30326,7 +30356,7 @@ fabric.util.object.extend(fabric.IText.prototype, /** @lends fabric.IText.protot
                 this.text.evented = true
                 this.canvas.setActiveObject(this.text)
                 this.text.enterEditing()
-                this.selectable = false
+                //this.selectable = false
             });
             this.on('deselected', () => {
                 this.canvas.preserveObjectStacking = this._prevObjectStacking
@@ -30337,13 +30367,17 @@ fabric.util.object.extend(fabric.IText.prototype, /** @lends fabric.IText.protot
                 this.text.set('height', parseInt(this.height*this.scaleY  - this.text.yTop - this.text.yBot));
             });
             this.text.on('changed',(e)=>{
+                this.recalcTextPosition()
+            });
+            this.text.on('changed',(e)=>{
                 this.text.set('width', parseInt(this.width*this.scaleX - this.text.xLeft - this.text.xRight));
                 this.text.set('height', parseInt(this.height*this.scaleY  - this.text.yTop - this.text.yBot));
             });
             this.text.on('editing:exited', () => {
-                this.text.selectable = false
                 this.text.evented = false
-                this.selectable = true
+                /*this.text.selectable = false
+
+                this.selectable = true*/
             })
         }
     })
@@ -30355,6 +30389,1402 @@ fabric.util.object.extend(fabric.IText.prototype, /** @lends fabric.IText.protot
 
 
 
+/**
+ * 新需求创建tableText
+ *
+ *
+ * */
+
+(function(global) {
+
+    'use strict';
+
+    var fabric = global.fabric || (global.fabric = {});
+
+    fabric.tableText = fabric.util.createClass(fabric.Rect, {
+        type: 'tableText',
+
+
+        recalcTextPosition: function () {
+
+
+
+
+        },
+
+
+
+        initialize: function (rectOptions, textOptions, text) {
+
+            var canvas = window._canvas = new fabric.Canvas('c');
+
+            var text = new fabric.Textbox("Some text", {
+                width: 100,
+                height: 22,
+                fontSize: 12,
+                editable: true
+            });
+
+            var rect = new fabric.Rect({
+                width: 100,
+                height: 22,
+                fill: 'yellow'
+            });
+
+            var group = new fabric.Group([ rect, text ], {
+                left: 30,
+                top: 30
+            });
+
+            canvas.add(group);
+
+            group.on('selected', function (e){
+                canvas.remove(group);
+                canvas.add(rect);
+                canvas.add(text);
+                canvas.renderAll();
+                canvas.setActiveObject(rect);
+
+            });
+
+            canvas.on('selection:cleared', function(e) {
+                group = new fabric.Group([ rect, text ], {});
+            });
+
+        }
+    })
+
+    fabric.tableText.fromObject = function(object, callback) {
+        return fabric.Object._fromObject('tableText', object, callback, 'text');
+    };
+
+})(typeof exports !== 'undefined' ? exports : this);
+
+
+
+//试试表格组件的封装---table table table table table table table table table
+(function(global) {
+
+    'use strict';
+
+    var fabric = global.fabric || (global.fabric = { });
+
+    if (fabric.tableView) {
+        return;
+    }
+
+
+    fabric.tableView = fabric.util.createClass(fabric.Object, {
+
+
+        type: 'tableView',
+        showheadbtn:false,
+        table:null,
+        tablehead:null,
+        tableColLines:[],
+        tableRowLines:[],
+        row:null,
+        col:null,
+        tableStyle:{},
+        tableHead:[],
+        tableBody:[],
+        tableHeadtext:[], //表格头部颜色和文字
+        tableBodytext:[],
+        grouplist:null,
+
+        toObject: function(propertiesToInclude) {
+            return this.callSuper('toObject', ['tableStyle', 'tableHead','tableBody'].concat(propertiesToInclude));
+        },
+
+
+        //画横线
+        drawrowline: function (tableStyle,tableHead) {
+            let onerowOption;
+            let tableRowLines = [];
+            //表头下面的线
+            tableRowLines.push(new fabric.Line([0,tableHead.style.height,tableStyle.width,tableHead.style.height],{
+                isType:'table-rowline',
+                left:0,
+                top:tableHead.style.height,
+                originX:"left",
+                originY:"top",
+
+                stroke:tableStyle.lineRowColor?tableStyle.lineRowColor:"#666666",
+                strokeWidth:tableStyle.lineRowWidth?tableStyle.lineRowWidth:1,
+                strokeDasharray:tableStyle.lineRowDashArray?tableStyle.lineRowDashArray:[0,0],
+            }));
+            //表格里的线
+            for(var i=1; i<(tableStyle.row-1); i++ ){
+                let avgh = (tableStyle.height-tableHead.style.height - tableStyle.lineRowWidth * (tableStyle.row-1))/(tableStyle.row-1);
+                let y =  tableHead.style.height + avgh*i;
+                onerowOption = {
+                    x1 : 0,
+                    x2: tableStyle.width,
+                    y1 :y,
+                    y2:y,
+                };
+                // console.log(onerowOption);
+                tableRowLines.push(new fabric.Line([onerowOption.x1,onerowOption.y1,onerowOption.x2,onerowOption.y2],{
+                    isType:'table-rowline',
+                    left:0,
+                    top:onerowOption.y1,
+                    originX:"left",
+                    originY:"top",
+
+                    stroke:tableStyle.lineRowColor?tableStyle.lineRowColor:"#666666",
+                    strokeWidth:tableStyle.lineRowWidth?tableStyle.lineRowWidth:1,
+                    strokeDasharray:tableStyle.lineRowDashArray?tableStyle.lineRowDashArray:[0,0],
+                }));
+            }
+            return tableRowLines;
+        },
+
+        //画竖线
+        drawcolline: function(tableStyle,tableHead){
+            let oneOption;
+            let tableColLines = [];
+            let sumx = 0;
+            for(var i=1; i<tableStyle.col; i++ ){
+                let avgw = tableStyle.width/tableStyle.col;
+                let x = tableHead.data[i-1].width?tableHead.data[i-1].width:avgw*i;
+                sumx = sumx + x;
+                oneOption = {
+                    x1 : sumx,
+                    x2: sumx,
+                    y1 :0,
+                    y2:tableStyle.height,
+                };
+                //console.log(oneOption);
+                tableColLines.push(new fabric.Line([oneOption.x1,oneOption.y1,oneOption.x2,oneOption.y2],{
+                    isType:'table-colline',
+                    left:oneOption.x1,
+                    top:0,
+                    originX:"left",
+                    originY:"top",
+                    padding:5,
+                    no:i,
+
+
+                    opacity:0.1,
+                    stroke:tableStyle.lineColColor?tableStyle.lineColColor:"#666666",
+                    strokeWidth:tableStyle.lineColWidth?tableStyle.lineColWidth:1,
+                    strokeDasharray:tableStyle.lineColDashArray?tableStyle.lineColDashArray:[0,0],
+                }));
+            }
+            return tableColLines;
+        },
+
+        //做左右拖拽的按钮
+        drawcolchange:function(tableStyle,tableHead){
+            let oneOption;
+            let sumx = 0;
+            for(var i=1; i<tableStyle.col; i++ ){
+                let avgw = tableStyle.width/tableStyle.col;
+                let x = tableHead.data[i-1].width?tableHead.data[i-1].width:avgw*i;
+                sumx = sumx + x;
+                oneOption = {
+                    x1 : sumx,
+                    x2: sumx,
+                    y1 :0,
+                    y2:tableStyle.height,
+                };
+                //console.log(oneOption);
+                let btn = document.createElement('button');
+                let curdom = document.getElementById('can');
+                curdom.append(btn);
+                btn.innerText='touch'+i;
+                btn.id = 'btnchangeid-'+i;
+                btn.setAttribute('min',sumx-x);
+                btn.setAttribute('max',sumx);
+                btn.setAttribute('minw',x);
+                btn.classList.add('btnchange');
+                btn.style.width = '40px';
+                btn.style.height='20px';
+                btn.style.background='#eeeeee';
+                btn.style.color = '#000000';
+                btn.style.zIndex = 99999;
+                btn.style.top = tableStyle.top+'px';
+                btn.style.left = tableStyle.left+oneOption.x1-20+'px';
+                btn.style.position = 'absolute';
+            }
+        },
+        //跟随的拖拽按钮
+        positionBtn(objs){
+           // console.log(objs);
+            let index = 0;
+            let sumx = objs.left -20;
+            objs._objects.forEach((obj)=>{
+                if(obj.isType==='table-theadbg'){
+                    index = index +1;
+                    sumx = sumx +  obj.width ;
+                   // console.log('btnchangeid'+index, sumx);
+                    let cbtn = document.getElementById('btnchangeid-'+index);
+                    if(cbtn){
+                         cbtn.style.left = sumx +'px';
+                         cbtn.style.top = objs.top +'px';
+                    }
+
+                }
+            })
+        },
+        //删除原配按钮
+        async deletebtn(n){
+            let btns = document.getElementsByClassName('btnchange');
+            let padom = document.getElementById('can');
+            for(var i=0;i<n-1;i++){
+                await padom.removeChild(btns[0]);
+            }
+        },
+
+
+        //画表头文字
+        drawTableHead(tableStyle,tableHead){
+            let oneOption;
+            let tableHeadtext = [];
+            let sumx = tableStyle.borderWidth-1; //初始值tableStyle.borderWidth
+
+            for(var i=1; i<tableStyle.col+1; i++ ){
+                let avgw = tableStyle.width/tableStyle.col;
+                let x = tableHead.data[i-1].width?tableHead.data[i-1].width:avgw*i;
+
+                oneOption = {
+                    left : sumx,
+                    top: tableStyle.borderWidth-1,
+                    width :i===tableStyle.col?tableStyle.width-sumx:tableHead.data[i-1].width - tableStyle.lineColWidth, //最后一个块不需要切掉中间线宽
+                    height:tableHead.style.height,
+
+                    fontType:tableHead.style.fontType ? tableHead.style.fontType:'宋体',
+                    fontSize:tableHead.style.fontSize ? tableHead.style.fontSize:16,
+                    fontColor:tableHead.style.fontColor ? tableHead.style.fontColor:'#000000',
+                    bgColor:tableHead.style.bgColor ? tableHead.style.bgColor:'#ffffff',
+                    lineHeight:tableHead.style.lineHeight ? tableHead.style.lineHeight:20,
+
+                };
+                let textbg = new fabric.Rect({
+                    isType:'table-theadbg',
+                    no:i,
+                    nrow:1,
+
+                    lockScalingFlip:true,
+                    minScaleLimit: 0.2,
+                    originX:"left",
+                    originY:"top",
+
+                    left:oneOption.left,
+                    top:oneOption.top,
+                    width:oneOption.width,
+                    height:oneOption.height,
+
+                    fill:oneOption.bgColor?oneOption.bgColor:"#ffffff",
+
+                });
+                tableHeadtext.push(textbg);
+
+                tableHeadtext.push(new fabric.Textbox( tableHead.data[i-1].name?tableHead.data[i-1].name:'表格名称',{
+                    isType:'table-theadtext',
+                    no:i,
+                    nrow:1,
+                    lockScalingFlip:true,
+                    minScaleLimit: 0.2,
+                    originX:"center",
+                    originY:"center",
+                    textAlign:"center",
+
+                    left:oneOption.left+2  + textbg.width/2,
+                    top:oneOption.top + oneOption.height/2,
+                    width:textbg.width,
+                    height:textbg.height,
+
+                    fontType:oneOption.fontType?oneOption.fontType:'宋体',
+                    fontSize:oneOption.fontSize?oneOption.fontSize:18,
+                    fill:oneOption.fontColor?oneOption.fontColor:"#000000",
+                    lineHeight:oneOption.lineHeight?oneOption.lineHeight:40,
+
+                    evented: false,
+                    clipTo: function(e) {
+                        if(e){
+                            e.canvas.getContext('2d').rect(-textbg.width/2,-textbg.height/2,textbg.width,textbg.height);
+                        }
+                    }
+
+                }));
+
+                sumx = sumx + x;
+            }
+            return tableHeadtext;
+        },
+
+        //画表格内容
+        drawTablebody(tableStyle,tableHead,tableBody){
+            let oneOption;
+            let tableBodytext = [];
+
+
+            for(var j=0;j<(tableStyle.row-1);j++){
+                let avgh = (tableStyle.height-tableHead.style.height - tableStyle.lineRowWidth * (tableStyle.row-1) )/(tableStyle.row-1);
+                let y =  j===0?tableHead.style.height:tableHead.style.height + avgh*j;
+                let sumx = tableStyle.borderWidth-1; //初始值tableStyle.borderWidth
+
+                for(var i=1; i<tableStyle.col+1; i++ ){
+                    let avgw = tableStyle.width/tableStyle.col;
+                    let x = tableHead.data[i-1].width?tableHead.data[i-1].width:avgw*i;
+                    oneOption = {
+                        left : sumx,
+                        top: tableStyle.borderWidth-1 + tableStyle.lineRowWidth*(j+1) + y,
+                        width :i===tableStyle.col?tableStyle.width-sumx:tableHead.data[i-1].width - tableStyle.lineColWidth, //最后一个块不需要切掉中间线宽
+                        height:avgh,
+
+                        fontType:tableBody.style.fontType ? tableBody.style.fontType:'宋体',
+                        fontSize:tableBody.style.fontSize ? tableBody.style.fontSize:16,
+                        fontColor:tableBody.style.fontColor ? tableBody.style.fontColor:'#000000',
+                        bgColor:tableBody.style.bgColor ? tableBody.style.bgColor:'#ffffff',
+                        lineHeight:tableBody.style.lineHeight ? tableBody.style.lineHeight:20,
+
+                    };
+                    let textbg = new fabric.Rect({
+                        isType:'table-tbodybg',
+                        lockScalingFlip:true,
+                        minScaleLimit: 0.2,
+                        originX:"left",
+                        originY:"top",
+                        no:i,
+                        nrow: j+2,
+
+                        left:oneOption.left,
+                        top:oneOption.top,
+                        width:oneOption.width,
+                        height:oneOption.height,
+
+                        fill:oneOption.bgColor?oneOption.bgColor:"#000000",
+
+                    });
+                    tableBodytext.push(textbg);
+
+                    tableBodytext.push(new fabric.Textbox( '商品数据',{
+                        isType:'table-tbodytext',
+                        lockScalingFlip:true,
+                        minScaleLimit: 0.2,
+                        originX:"center",
+                        originY:"center",
+                        textAlign:"center",
+                        no:i,
+                        nrow: j+2,
+
+                        left:oneOption.left+2  + textbg.width/2,
+                        top:oneOption.top + oneOption.height/2,
+                        width:oneOption.width,
+                        height:oneOption.height,
+
+                        fontType:oneOption.fontType?oneOption.fontType:'宋体',
+                        fontSize:oneOption.fontSize?oneOption.fontSize:18,
+                        fill:oneOption.fontColor?oneOption.fontColor:"#ffffff",
+
+                        lineHeight:oneOption.lineHeight?oneOption.lineHeight:40,
+
+                        evented: false,
+                        clipTo: function(e) {
+                            if(e){
+                                e.canvas.getContext('2d').rect(-textbg.width/2,-textbg.height/2,textbg.width,textbg.height);
+                            }
+                        }
+
+                    }));
+
+                    sumx = sumx + x;
+                }
+            }
+            return tableBodytext;
+        },
+
+
+
+
+        initialize: function(canvas,tableStyle,tableHead,tableBody) {
+
+            if(!tableStyle){
+                tableStyle = {
+                    type:'table',
+
+                    left:500,
+                    top:500,
+                    width:180,
+                    height:120,
+                    layer:0,
+
+                    row:4,
+                    col:3,
+
+                    background:'#ffff00',
+
+                    borderWidth:0,
+                    borderColor:"#000000",
+                    borderDashArray: [0,0],
+
+                    lineRowWidth:1,
+                    lineRowColor:"#666666",
+                    lineRowDashArray: [0,0],
+
+                    lineColWidth:1,
+                    lineColColor:"#666666",
+                    lineColDashArray: [0,0],
+
+                    oddLine:"#146db1",
+                    evenLine:"#6ea74c",
+                }
+            }
+            if(!tableHead){
+                tableHead = {
+                    style:{
+                        height:40,
+
+                        bgColor:"#ff0000",
+                        fontType:"宋体",
+                        fontSize:18,
+                        fontColor:"#000000",
+                        lineHeight:40,
+                        position:1,
+                    },
+                    data:[{
+                        width:100,
+                        name:"表头名称1",
+                        fileType:0,
+                        fileCode:"itemTitle",
+
+                        bgColor:"#ff0000",
+                        fontType:"宋体",
+                        fontSize:18,
+                        fontColor:"#000000",
+                        lineHeight:40,
+                        position:1,
+                    },{
+                        width:100,
+                        name:"表头名称2",
+                        fileType:0,
+                        fileCode:"itemTitle",
+
+                        bgColor:"#ff0000",
+                        fontType:"宋体",
+                        fontSize:18,
+                        fontColor:"#000000",
+                        lineHeight:40,
+                        position:1,
+
+                    },{
+                        width:100,
+                        name:"表头名称3",
+                        fileType:0,
+                        fileCode:"itemTitle",
+
+                        bgColor:"#ff0000",
+                        fontType:"宋体",
+                        fontSize:18,
+                        fontColor:"#000000",
+                        lineHeight:40,
+                        position:1,
+                    }]
+                }
+            }
+            if(!tableBody){
+                tableBody = {
+                    style:{
+                        bgColor:"#000000",
+                        fontType:"宋体",
+                        fontSize:16,
+                        fontColor:"#ffffff",
+                        lineHeight:20,
+                    },
+                    data: [
+                        {id: 2021001, itemTitle: "张三", age: "男"},
+                        {id: 2021002, itemTitle: "李思", age: "女"},
+                        {id: 2021002, itemTitle: "王五", age: "男"},
+                        {id: 2021002, itemTitle: "赵六", age: "女"},
+                        {id: 2021002, itemTitle: "钱七", age: "女"},
+                        {id: 2021002, itemTitle: "孙八", age: "男"},
+                        {id: 2021002, itemTitle: "赵六", age: "女"},
+                        {id: 2021002, itemTitle: "钱七", age: "女"},
+                        {id: 2021002, itemTitle: "孙八", age: "男"}
+                    ],
+                }
+            }
+            this.row = tableStyle.row;
+            this.col = tableStyle.col;
+            this.tableStyle = tableStyle;
+            this.tableHead = tableHead;
+            this.tableBody = tableBody;
+
+            this.dragbtn = false;
+            this.dragbtnid = '';
+            this.dragx1 = 0;
+            this.dragx2 = 1;
+
+            /*表格背景*/
+            this.table = new fabric.Rect({
+                isType:'table-bg',
+                originX:"left",
+                originY:"top",
+                left:0,
+                top:0,
+                width: tableStyle.width ? tableStyle.width :180,
+                height: tableStyle.height ? tableStyle.height:90,
+                fill: tableStyle.background ? tableStyle.background:'#ffff00',
+
+                stroke: tableStyle.borderColor ? tableStyle.borderColor:"#000000",
+                strokeWidth:tableStyle.borderWidth===0 ? 0: tableStyle.borderWidth,
+                strokeDashArray:tableStyle.borderDashArray ? tableStyle.borderDashArray:[0,0],
+
+                col:this.tableStyle.col,
+                row:this.tableStyle.row,
+                tableStyle:this.tableStyle,
+                tableHead: this.tableHead,
+                tableBody: this.tableBody,
+
+            });
+
+
+            //表头文字
+            this.tableHeadtext = this.drawTableHead(tableStyle,tableHead);
+
+            //表格文字
+             this.tableBodytext = this.drawTablebody(tableStyle,tableHead,tableBody);
+
+             if(this.showheadbtn){
+                 //新建拖拽宽度的按钮
+                 this.drawcolchange(tableStyle,tableHead);
+             }
+
+            /*表格列分割线*/
+           //  this.tableColLines = this.drawcolline(tableStyle,tableHead);
+
+            /*表格行分割线*/
+           // this.tableRowLines = this.drawrowline(tableStyle,tableHead);
+
+            var group = new fabric.Group([ this.table,...this.tableHeadtext,...this.tableBodytext,...this.tableRowLines,...this.tableColLines,], {
+                left: tableStyle.left,
+                top: tableStyle.top,
+                width:tableStyle.width,
+                height:tableStyle.height,
+                originX:"left",
+                originY:"top",
+                isType:"tableView",
+                tableStyle:tableStyle,
+                tableHead:tableHead,
+                tableBody:tableBody,
+
+                hasRotatingPoint:false,
+                lockScalingFlip:true,
+                minScaleLimit: 0.2,
+            });
+
+            this.grouplist = group;
+
+           // console.log(canvas);
+
+            canvas.add(group);
+            group.setCoords();
+            canvas.renderAll();
+            canvas.setActiveObject(group);
+
+
+            //缩放时
+            let _this = this;
+            group.on('scaled',async function (e){
+                //console.log(e);
+
+                let tableStyle2 = group.item(0).tableStyle;
+                let tableHead2 = group.item(0).tableHead;
+                let tableBody2 = group.item(0).tableBody;
+
+                tableStyle2.width = group.width*group.scaleX;
+                tableStyle2.height = group.height*group.scaleY;
+                tableStyle2.left = group.left;
+                tableStyle2.top = group.top;
+
+                tableHead2.style.height = tableHead2.style.height*group.scaleY;
+
+                for(var s=0;s<tableHead2.data.length;s++){
+                    //console.log(tableHead2.data[s]);
+                    tableHead2.data[s].width = parseInt(tableHead2.data[s].width) *group.scaleX;
+                }
+
+                if(_this.showheadbtn) {
+                    await _this.deletebtn(tableHead2.data.length);  //删除原配按钮
+                }
+
+                await canvas.remove(group); //删除组
+
+                await new fabric.tableView(canvas,tableStyle2,tableHead2,tableBody2); //新建表格组
+
+                canvas.requestRenderAll();
+                canvas.renderAll();
+            });
+
+            group.on('moving', function() {
+                if(_this.showheadbtn){_this.positionBtn(group) }
+            });
+            group.on('scaling', function() {
+                if(_this.showheadbtn){_this.positionBtn(group) }
+            });
+            group.on('rotating', function() {
+                if(_this.showheadbtn){_this.positionBtn(group) }
+            });
+
+
+
+            let padom = document.getElementById('can');
+            canvas.on('mouse:up', function (e){
+                _this.dragbtn = false;
+                canvas.requestRenderAll();
+                canvas.renderAll();
+            });
+
+            if(this.showheadbtn){
+                let btns = document.getElementsByClassName('btnchange');
+
+                for(var i = 0;i<btns.length;i++){
+                    btns[i].onmousedown = function(event){
+                        _this.dragbtn = true;
+                        _this.gragx1 = event.x - padom.offsetTop - 20;
+                        _this.dragbtnid = event.target.id;
+
+                    };
+                    btns[i].onmousemove = function(event){
+                        if(_this.dragbtn){
+                            let newleft = event.x - padom.offsetTop - 20; //改变拖拽的左右位置
+                            if( newleft - _this.gragx1 > - parseInt(event.target.getAttribute('minw')) ){
+                                event.target.style.left =  newleft +'px';
+                                _this.gragx2 = newleft;
+                            }
+                        }
+                    };
+                    btns[i].onmouseup = function(event){
+                        _this.dragbtn = false;
+                    };
+                    btns[i].onmouseout = function(event){
+                        _this.dragbtn = false;
+                    }
+                }
+            }
+
+            /*this._calcBounds();
+            this._updateObjectsCoords();
+            fabric.Object.prototype.initialize.call(this, options);
+            this.setCoords();*/
+        },
+
+
+
+
+    });
+
+
+
+    fabric.tableView.fromObject = function(object, callback) {
+        return fabric.Object._fromObject('tableView', object, callback, 'tableView');
+    };
+
+
+
+})(typeof exports !== 'undefined' ? exports : this);
+
+
+
+//表格封装 tableList
+(function(global) {
+
+    'use strict';
+
+    var fabric = global.fabric || (global.fabric = { });
+
+    if (fabric.tableList) {
+        return;
+    }
+
+
+    fabric.tableList = fabric.util.createClass(fabric.Object, {
+
+
+        type: 'tableList',
+
+        table:null,
+        canvashead:null,
+        canvasbody:null,
+        tableColLines:[],
+        tableRowLines:[],
+
+        row:null,
+        col:null,
+
+        tables:{},
+        tableinfo:{},
+
+        grouplist:null,
+
+        toObject: function(propertiesToInclude) {
+            return this.callSuper('toObject', ['tables', ].concat(propertiesToInclude));
+        },
+
+
+        //画表格头部
+        async drawTableHead(table,tableHead){
+            let col = table.tableinfo.col;
+            let colWidth = 60;
+            let borderWidth = table.tableinfo.borderWidth;
+            let tableTitleHeight = tableHead[0].height; //第一个格子的高即 表头高
+
+            let oneOption;
+            let tableHeadtext = [];
+            let sumx = table.tableinfo.borderWidth; //初始值tableStyle.borderWidth
+
+            for(var i=0; i<col; i++ ){
+                colWidth = tableHead[i].width;
+
+                if(i!==col-1){
+                    colWidth = tableHead[i].width;
+                }else{ //最后一列的宽度
+                    colWidth = table.tableinfo.width - sumx - table.tableinfo.borderWidth;
+                }
+
+                oneOption = {
+                    left : sumx,
+                    top: borderWidth,
+                    width :colWidth, //最后一个块不需要切掉中间线宽
+                    height:tableTitleHeight,
+
+                    fontType:tableHead[i].fontType ? tableHead[i].fontType:'宋体',
+                    fontSize:tableHead[i].fontSize ? tableHead[i].fontSize:16,
+                    fontColor:tableHead[i].fontColor ? tableHead[i].fontColor:'#000000',
+                    bgColor:tableHead[i].bgColor ? tableHead[i].bgColor:'#EEEEEE',
+                    text:tableHead[i].value ? tableHead[i].value:'HEAD',
+
+                    lineHeight:tableHead[i].lineHeight ? tableTitleHeight:40,
+
+
+                };
+                let textbg = await  new fabric.Rect({
+                    isType:'table-theadbg',
+                    ncol:i+1,
+                    nrow:0,
+
+                    lockScalingFlip:true,
+                    minScaleLimit: 0.2,
+                    originX:"left",
+                    originY:"top",
+
+                    left:oneOption.left,
+                    top:oneOption.top,
+                    width:oneOption.width,
+                    height:oneOption.height,
+
+                    fill:oneOption.bgColor?oneOption.bgColor:"#ffffff",
+
+                });
+                tableHeadtext.push(textbg);
+
+                tableHeadtext.push(await  new fabric.Textbox( oneOption.text?oneOption.text:'表头名称',{
+                    isType:'table-theadtext',
+                    ncol:i+1,
+                    nrow:0,
+                    lockScalingFlip:true,
+                    minScaleLimit: 0.2,
+                    originX:"center",
+                    originY:"center",
+                    textAlign:"center",
+
+                    left:oneOption.left + textbg.width/2,
+                    top:oneOption.top + oneOption.height/2,
+                    width:textbg.width,
+                    height:textbg.height,
+
+                    fontType:oneOption.fontType?oneOption.fontType:'宋体',
+                    fontSize:oneOption.fontSize?oneOption.fontSize:18,
+                    fill:oneOption.fontColor?oneOption.fontColor:"#000000",
+                    lineHeight:oneOption.lineHeight?oneOption.lineHeight:40,
+
+                    evented: false,
+                    clipTo: function(e) {
+                        if(e){
+                            e.canvas.getContext('2d').rect(-textbg.width/2,-textbg.height/2,textbg.width,textbg.height);
+                        }
+                    }
+
+                }));
+
+                sumx = sumx + colWidth + borderWidth;
+            }
+            return tableHeadtext;
+        },
+        //画表体
+        async drawTableBody(table,tableBody){
+
+            let col = table.tableinfo.col;
+            let row = table.tableinfo.row;
+            let colWidth = 60;
+            let borderWidth = table.tableinfo.borderWidth;
+            let tablelineHeight = tableBody[0].height; //第一个格子的高即 表头高
+
+            let oneOption;
+            let tableHeadtext = [];
+            let sumx = table.tableinfo.borderWidth; //初始值tableStyle.borderWidth
+            let sumy = table.tableinfo.titleLineHeight; //初始值table.tableinfo.titleLineHeight tableBody[0].height + table.tableinfo.borderWidth*2
+
+            for(var j=0;j<row-1;j++){
+                sumx = table.tableinfo.borderWidth;
+
+                for(var i=0; i<col; i++ ){
+                    if(i!==col-1){
+                        colWidth = tableBody[i].width;
+                    }else{ //最后一列的宽度
+                        colWidth = table.tableinfo.width - sumx - table.tableinfo.borderWidth;
+                    }
+
+
+                    oneOption = {
+                        left : sumx,
+                        top: sumy,
+                        width :colWidth, //最后一个块不需要切掉中间线宽
+                        height:tablelineHeight,
+
+                        fontType:tableBody[i].fontType ? tableBody[i].fontType:'宋体',
+                        fontSize:tableBody[i].fontSize ? tableBody[i].fontSize:16,
+                        fontColor:tableBody[i].fontColor ? tableBody[i].fontColor:'#000000',
+                        bgColor:table.tableinfo.bgColors[j%table.tableinfo.bgColors.length],
+                        text:tableBody[i].value ? tableBody[i].value:'aaa',
+
+                        lineHeight:tablelineHeight ? tablelineHeight:40,
+
+
+                    };
+
+                    let textbg =await new fabric.Rect({
+                        isType:'table-tbodybg',
+                        ncol:i+1,
+                        nrow:j+1,
+
+                        lockScalingFlip:true,
+                        minScaleLimit: 0.2,
+                        originX:"left",
+                        originY:"top",
+
+                        left:oneOption.left,
+                        top:oneOption.top,
+                        width:oneOption.width,
+                        height:oneOption.height,
+
+                        fill:oneOption.bgColor?oneOption.bgColor:"#ffffff",
+
+                    });
+                    tableHeadtext.push(textbg);
+
+                    let textAlign = 'center';
+                    let marginTop = 0;
+
+                    switch(tableBody[i].position){
+                        case 1:
+                            textAlign = 'left';
+                            marginTop = -(textbg.height - oneOption.fontSize)/2;
+                            break;
+                        case 2:
+                            textAlign = 'center';
+                            marginTop = -(textbg.height - oneOption.fontSize)/2;
+                            break;
+                        case 3:
+                            textAlign = 'right';
+                            marginTop = -(textbg.height - oneOption.fontSize)/2;
+                            break;
+                        case 4:
+                            textAlign = 'left';
+                            marginTop = 0;
+                            break;
+                        case 5:
+                            textAlign = 'center';
+                            marginTop = 0;
+                            break;
+                        case 6:
+                            textAlign = 'right';
+                            marginTop = 0;
+                            break;
+                        case 7:
+                            textAlign = 'left';
+                            marginTop = (textbg.height - oneOption.fontSize)/2 ;
+                            break;
+                        case 8:
+                            textAlign = 'center';
+                            marginTop = (textbg.height - oneOption.fontSize)/2 ;
+                            break;
+                        case 9:
+                            textAlign = 'right';
+                            marginTop = (textbg.height - oneOption.fontSize)/2 ;
+                            break;
+                        default:
+                            textAlign = 'center';
+                            marginTop = 0;
+
+                    }
+
+                    tableHeadtext.push(await new fabric.Textbox( oneOption.text?oneOption.text:'内容',{
+                        isType:'table-tbodytext',
+                        ncol:i+1,
+                        nrow:j+1,
+                        lockScalingFlip:true,
+                        minScaleLimit: 0.2,
+                        originX:"center",
+                        originY:"center",
+
+                        left:oneOption.left + textbg.width/2,
+                        top:oneOption.top + oneOption.height/2 +marginTop,
+
+                        /*left:oneOption.left,
+                        top:oneOption.top,*/
+
+                        width:textbg.width,
+                        height:textbg.height,
+
+                        fontType:oneOption.fontType?oneOption.fontType:'宋体',
+                        fontSize:oneOption.fontSize?oneOption.fontSize:18,
+                        fill:oneOption.fontColor?oneOption.fontColor:"#000000",
+                        lineHeight:oneOption.fontSize?oneOption.fontSize:18,
+
+                        textAlign:textAlign,
+
+                        evented: false,
+                        clipTo: function(e) {
+                            if(e){
+                                e.canvas.getContext('2d').rect(-textbg.width/2,-textbg.height/2,textbg.width,textbg.height);
+                            }
+                        }
+
+                    }));
+
+                    sumx = sumx + colWidth + borderWidth;
+
+                }
+
+                sumy = sumy + tablelineHeight + borderWidth;
+            }
+
+            return tableHeadtext;
+        },
+
+        //画表格框
+        drawtableborder:function(table){
+            let tableborders = [];
+            tableborders.push(new fabric.Line([0,0,table.tableinfo.width,0],{
+                isType:'table-tableborder',
+                left:0,
+                top:0,
+                originX:"left",
+                originY:"top",
+
+                stroke:"#666666",
+                strokeWidth:table.tableinfo.borderWidth?table.tableinfo.borderWidth:1,
+                strokeDasharray:table.tableinfo.borderType===0?[0,0]:[3,2],
+            }));
+            tableborders.push(new fabric.Line([table.tableinfo.width,0,table.tableinfo.width,table.tableinfo.height],{
+                isType:'table-tableborder',
+                left:table.tableinfo.width,
+                top:0,
+                originX:"left",
+                originY:"top",
+
+                stroke:"#666666",
+                strokeWidth:table.tableinfo.borderWidth?table.tableinfo.borderWidth:1,
+                strokeDasharray:table.tableinfo.borderType===0?[0,0]:[3,2],
+            }));
+            tableborders.push(new fabric.Line([0,table.tableinfo.height,table.tableinfo.width,table.tableinfo.height],{
+                isType:'table-tableborder',
+                left:0,
+                top:table.tableinfo.height,
+                originX:"left",
+                originY:"top",
+
+                stroke:"#666666",
+                strokeWidth:table.tableinfo.borderWidth?table.tableinfo.borderWidth:1,
+                strokeDasharray:table.tableinfo.borderType===0?[0,0]:[3,2],
+            }));
+            tableborders.push(new fabric.Line([0,0,0,table.tableinfo.height],{
+                isType:'table-tableborder',
+                left:0,
+                top:0,
+                originX:"left",
+                originY:"top",
+
+                stroke:"#666666",
+                strokeWidth:table.tableinfo.borderWidth?table.tableinfo.borderWidth:1,
+                strokeDasharray:table.tableinfo.borderType===0?[0,0]:[3,2],
+            }));
+            return tableborders;
+        },
+        //画横线
+        drawrowline: function (table) {
+            let onerowOption;
+            let tableRowLines = [];
+            let y = 0;
+            //表格里的线
+            for(var i=0; i< table.tableinfo.row; i++ ){
+
+                if(i===0){
+                    y = table.tableinfo.titleLineHeight -  table.tableinfo.borderWidth;
+                }else{
+                    y = y + table.tableinfo.bodyLineHeight;
+                }
+
+                onerowOption = {
+                    x1 : 0,
+                    x2: table.tableinfo.width,
+                    y1 :y,
+                    y2:y,
+                };
+                tableRowLines.push(new fabric.Line([onerowOption.x1,onerowOption.y1,onerowOption.x2,onerowOption.y2],{
+                    isType:'table-rowline',
+                    left:0,
+                    top:onerowOption.y1,
+                    originX:"left",
+                    originY:"top",
+
+                    stroke:"#666666",
+                    strokeWidth:table.tableinfo.borderWidth?table.tableinfo.borderWidth:1,
+                    strokeDasharray:table.tableinfo.borderType===0?[0,0]:[3,2],
+                }));
+                y = y + table.tableinfo.borderWidth;
+            }
+            return tableRowLines;
+        },
+
+        //画竖线
+        drawcolline: function(table){
+            let tableColLines = [];
+            let onerowOption;
+            let x = 0;
+            //表格里的线
+            for(var i=0; i< table.tableinfo.col; i++ ){
+
+                if(i===0){
+                    x = table.tableList[i].width + table.tableinfo.borderWidth;
+                }else{
+                    x = x + table.tableList[i].width;
+                }
+
+                onerowOption = {
+                    x1 : x,
+                    x2: x,
+                    y1 :0,
+                    y2:table.tableinfo.height,
+                };
+                tableColLines.push(new fabric.Line([onerowOption.x1,onerowOption.y1,onerowOption.x2,onerowOption.y2],{
+                    isType:'table-colline',
+                    left:x,
+                    top:0,
+                    originX:"left",
+                    originY:"top",
+
+                    stroke:"#666666",
+                    strokeWidth:table.tableinfo.borderWidth?table.tableinfo.borderWidth:1,
+                    strokeDasharray:table.tableinfo.borderType===0?[0,0]:[3,2],
+                }));
+                x = x + table.tableinfo.borderWidth;
+            }
+            return tableColLines;
+        },
+
+        returnXY:function(){
+            let xy = {row:0,col:0,};
+            console.warn(xy)
+            return xy;
+        },
+
+        initialize:async function(canvas,table) {
+
+            if(!table){
+                table = {
+                    tableinfo:{
+                        id:0,
+                        row:3,
+                        col:3,
+                        width:200,
+                        height:150,
+                        titleLineHeight:52,
+                        bodyLineHeight:40,
+                        times:5,
+                        animate:0,
+                        borderWidth:5,
+                        borderColor:'#ffff00',
+                        borderType:0,
+                        bgColors:['#A4CFFC','#AACF98'],
+
+                    },
+                    tableList:[
+                        {
+                        type:0,
+                        col:1,
+                        width:60,
+                        height:50,
+                        fontType:"",
+                        fontSize:14,
+                        fontColor:"#ffffff",
+                        value:"A列",
+                            bgColor:"#EEEEEE",
+                        position:5,
+                        field:"itemTitle",
+                        fieldType:0,
+                        },
+                        {
+                        type:0,
+                        col:2,
+                        width:60,
+                        height:50,
+                        fontType:"",
+                        fontSize:14,
+                        fontColor:"#ffffff",
+                        value:"B列",
+                            bgColor:"#EEEEEE",
+                        position:5,
+                        field:"itemTitle",
+                        fieldType:0,
+                        },
+                        {
+                        type:0,
+                        col:3,
+                        width:60,
+                        height:50,
+                        fontType:"",
+                        fontSize:14,
+                        fontColor:"#ffffff",
+                        value:"C列",
+                            bgColor:"#EEEEEE",
+                        position:5,
+                        field:"itemTitle",
+                        fieldType:0,
+                        },
+                        {
+                        type:1,
+                        col:1,
+                        width:60,
+                        height:40,
+                        fontType:"",
+                        fontSize:14,
+                        fontColor:"#000000",
+                        value:"A列值",
+                            bgColor:"#EEEEEE",
+                        position:5,
+                        field:"",
+                        fieldType:0,
+                        },
+                        {
+                        type:1,
+                        col:2,
+                        width:60,
+                        height:40,
+                        fontType:"",
+                        fontSize:14,
+                        fontColor:"#000000",
+                        value:"B列值",
+                            bgColor:"#EEEEEE",
+                        position:5,
+                        field:"",
+                        fieldType:0,
+                        },
+                        {
+                        type:1,
+                        col:3,
+                        width:60,
+                        height:40,
+                        fontType:"",
+                        fontSize:14,
+                        fontColor:"#000000",
+                        value:"C列值",
+                        bgColor:"#EEEEEE",
+                        position:5,
+                        field:"",
+                        fieldType:0,
+                    }]
+                }
+            }
+            table = JSON.parse(JSON.stringify(table));
+                this.tables = table;
+            this.tableinfo = table.tableinfo;
+
+            this.row = table.tableinfo.row;
+            this.col = table.tableinfo.col;
+
+            let tableHead = [];
+            let tableBody = [];
+            table.tableList.forEach((one)=>{
+               if(one.type===0){
+                   tableHead.push(one);
+               }
+               if(one.type===1){
+                   tableBody.push(one);
+               }
+            });
+
+            /*表格背景*/
+            this.table = new fabric.Rect({
+                isType:'tablelist-bg',
+                originX:"left",
+                originY:"top",
+                left:0,
+                top:0,
+                width: this.tableinfo.width ? this.tableinfo.width :200,
+                height: this.tableinfo.height ? this.tableinfo.height:150,
+                fill: this.tableinfo.borderColor ? this.tableinfo.borderColor:'#ffff00',
+
+               /* stroke: this.tableinfo.borderColor ? this.tableinfo.borderColor:"#eee",
+                strokeWidth:this.tableinfo.borderWidth===0 ? 0: this.tableinfo.borderWidth,
+                strokeDashArray:this.tableinfo.borderDashArray ? this.tableinfo.borderDashArray:[0,0],*/
+
+                col:this.tableinfo.col,
+                row:this.tableinfo.row,
+
+                id:table.tableinfo.id,
+                layoutElementId:table.tableinfo.layoutElementId?table.tableinfo.layoutElementId:null,
+                tableStyle:table,
+
+            });
+
+            let canvashead = await this.drawTableHead(table,tableHead)
+
+            let canvasbody = await this.drawTableBody(table,tableBody);
+
+            /*let borders = this.drawtableborder(table);
+            let rowborders = this.drawrowline(table);
+            let colborders = this.drawcolline(table);*/
+            /*...borders,...rowborders,...colborders*/
+
+            var group = new fabric.Group([ this.table,...canvashead,...canvasbody], {
+                left: this.tableinfo.left,
+                top: this.tableinfo.top,
+                width:this.tableinfo.width,
+                height:this.tableinfo.height,
+                originX:"left",
+                originY:"top",
+                isType:"tableList",
+
+                hasRotatingPoint:false,
+                lockScalingFlip:true,
+                minScaleLimit: 0.2,
+
+                tableStyle:table,
+                id:table.tableinfo.id,
+                layoutElementId:table.tableinfo.layoutElementId?table.tableinfo.layoutElementId:null,
+            });
+
+            this.grouplist = group;
+
+
+            // console.log(canvas);
+
+            canvas.add(group);
+            group.setCoords();
+            canvas.renderAll();
+            canvas.setActiveObject(group);
+
+
+            //缩放时
+            let _this = this;
+            group.on('scaled',async function (e){
+               // console.warn(group.item(0).tableStyle.tableinfo.id);
+                let tableStyle2 = group.item(0).tableStyle;
+
+                const tableinfo = JSON.parse(JSON.stringify(group.item(0).tableStyle.tableinfo));
+
+                //除去边框的宽度
+                let oldallwidth = tableinfo.width - (tableinfo.col+1) * tableinfo.borderWidth;
+                //新的坐标和 宽高
+                tableStyle2.tableinfo.left = group.left;
+                tableStyle2.tableinfo.top = group.top;
+
+                tableStyle2.tableinfo.width = group.width*group.scaleX;
+                tableStyle2.tableinfo.height = group.height*group.scaleY;
+
+                //新的表头行高 +2倍边框
+                tableStyle2.tableinfo.titleLineHeight = tableinfo.titleLineHeight *group.scaleY ;
+                //除去边框的总表体高度
+                let allbodyheight =  group.height*group.scaleY - (tableinfo.row-1) * tableinfo.borderWidth -tableinfo.titleLineHeight *group.scaleY;
+                //新的表体行高
+                tableStyle2.tableinfo.bodyLineHeight = allbodyheight / (tableinfo.row-1);
+                //变形后的 除去边框的宽度
+                let newallwidth = group.width*group.scaleX - (tableinfo.col+1) * tableinfo.borderWidth;
+
+
+                let lastlefthead = tableStyle2.tableinfo.borderWidth;
+                let lastleftbody = tableStyle2.tableinfo.borderWidth;
+                tableStyle2.tableList.forEach((one,i)=>{
+
+
+                    if(one.type===0){ //变形后表头 行高
+                        one.width = (one.width /oldallwidth ) * newallwidth ;
+
+                        if(one.col!==tableStyle2.tableList.length/2){ //累计最后一格左边坐标
+                            lastlefthead = lastlefthead + one.width + tableStyle2.tableinfo.borderWidth;
+                        }else{
+                            /*console.log(one.width);
+                            console.log('test',group.width*group.scaleX-tableinfo.borderWidth-lastlefthead);*/
+
+                            one.width = parseInt(group.width*group.scaleX-tableinfo.borderWidth-lastlefthead);
+                        }
+
+                        one.height = tableinfo.titleLineHeight *group.scaleY - tableinfo.borderWidth*2;
+                    }
+                    if(one.type===1){ //变形后表体 行高
+                        one.width = (one.width /oldallwidth ) * newallwidth ;
+                        if(one.col!==tableStyle2.tableList.length/2){ //累计最后一格左边坐标
+                            lastleftbody = lastleftbody + one.width + tableStyle2.tableinfo.borderWidth;
+                        }else{
+                            one.width = parseInt(group.width*group.scaleX-tableinfo.borderWidth-lastleftbody);
+                        }
+                        one.height = tableStyle2.tableinfo.bodyLineHeight;
+                    }
+                });
+
+                await canvas.remove(group); //删除组
+
+                //console.warn(tableStyle2);
+                let canvasObject =  await new fabric.tableList(canvas,tableStyle2); //新建表格组
+
+
+
+                setTimeout(()=>{
+                    canvasObject.table.group.setCoords();
+                    canvas.setActiveObject(canvasObject.table.group);
+                    canvas.requestRenderAll();
+                    canvas.renderAll();
+                },1);
+
+
+            });
+
+            group.on('moving', function() {
+
+            });
+            group.on('scaling', function() {
+
+            });
+            group.on('rotating', function() {
+
+            });
+
+
+            return group;
+            /*this._calcBounds();
+            this._updateObjectsCoords();
+            fabric.Object.prototype.initialize.call(this, options);
+            this.setCoords();*/
+        },
+
+
+
+
+    });
+
+
+
+    fabric.tableList.fromObject = function(object, callback) {
+        return fabric.Object._fromObject('tableList', object, callback, 'tableList');
+    };
+
+
+
+})(typeof exports !== 'undefined' ? exports : this);
 
 
 
